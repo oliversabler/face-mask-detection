@@ -32,4 +32,4 @@ y = [data.count('with_mask'), data.count('without_mask'), data.count('mask_weare
 fig, ax = plt.subplots()
 ax.bar(x, y)
 
-plt.savefig('mask_data.png')
+plt.savefig('images/mask_data.png')
