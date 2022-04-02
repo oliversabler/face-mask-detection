@@ -3,20 +3,22 @@ import numpy as np
 from matplotlib import pyplot as plt 
 from os import listdir
 
-ANNOTATIONS_PATH = './data/annotations/'
+METADATA_PATH = './data/annotations/'
 
-# Populate annotation file path to list
-ann_file_path = []
-for filename in listdir(ANNOTATIONS_PATH):
-  ann_file_path.append(ANNOTATIONS_PATH + filename)
+# Get a paths for all annotation files
+def get_metadata_paths():
+  metadata_paths = []
+  for filename in listdir(METADATA_PATH):
+    metadata_paths.append(METADATA_PATH + filename)
+  return metadata_paths
 
 # Loop all annotation files and save mask data to list
 data = []
-for file in ann_file_path:
-  with open(file) as f:
+for path in get_metadata_paths():
+  with open(path) as file:
     # Parse to dict and select the 'object' element(s) 
-    ann = xmltodict.parse(f.read())
-    obj = ann['annotation']['object']
+    metadata = xmltodict.parse(file.read())
+    obj = metadata['annotation']['object']
 
     # If the object is a list loop through it, else select name
     if type(obj) == list:
