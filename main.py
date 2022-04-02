@@ -1,3 +1,4 @@
+from collections import Counter
 import xmltodict
 import numpy as np
 from matplotlib import pyplot as plt
@@ -53,6 +54,29 @@ def plot_mask_data():
 
 
 # Plot data and save diagram to file
-plot_mask_data()
+# plot_mask_data()
 
-# Process images (mark faces)
+# Process images (mark faces)?
+
+
+# Dataset
+def create_dataset():
+    images_paths = get_images_paths()
+    metadata_paths = get_metadata_paths()
+    image_tensor = []
+    label_tensor = []
+
+    data_len = int(len(images_paths)) - 1
+    for i in range(data_len):
+        with open(metadata_paths[i]) as file:
+            metadata = xmltodict.parse(file.read())
+            obj = metadata["annotation"]["object"]
+
+            if type(obj) == list:
+                for j in range(len(obj)):
+                    x, y, w, h = list(map(int, obj[j]["bndbox"].values()))
+            else:
+                x, y, w, h = list(map(int, obj["bndbox"].values()))
+
+
+create_dataset()
