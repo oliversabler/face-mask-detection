@@ -7,6 +7,7 @@ from matplotlib import pyplot as plt
 
 import torch
 from torchvision import datasets, transforms, models
+from torch.utils.data import Dataset, DataLoader, random_split
 
 WITH_MASK = "with_mask"
 WITHOUT_MASK = "without_mask"
@@ -18,7 +19,7 @@ def get_paths(path):
     paths = []
     for filename in listdir(path):
         paths.append(path + filename)
-    return paths
+    return sorted(paths)
 
 
 def get_metadata_paths():
@@ -78,9 +79,13 @@ def create_dataset():
     # Composes several transforms together to be used on image
     t = transforms.Compose([transforms.Resize((226, 226)), transforms.ToTensor()])
 
-    data_len = int(len(images_paths)) - 1
-    for i in range(data_len):
+    for i, image_path in enumerate(images_paths):
+
+        # Debug logging
         print(f"tensor {i}")
+        print(image_path)
+        print(metadata_paths[i])
+
         with open(metadata_paths[i]) as file:
             metadata = xmltodict.parse(file.read())
             obj = metadata["annotation"]["object"]
@@ -95,7 +100,7 @@ def create_dataset():
 
                     # Crop the image based on xmin, ymin, xmax and ymax (face coordinates)
                     image = transforms.functional.crop(
-                        Image.open(images_paths[i]).convert("RGB"), y, x, h - y, w - x
+                        Image.open(image_path).convert("RGB"), y, x, h - y, w - x
                     )
 
                     # Apply transforms to image and append image to tensor list
@@ -112,7 +117,7 @@ def create_dataset():
 
                 # Crop the image based on xmin, ymin, xmax and ymax (face coordinates)
                 image = transforms.functional.crop(
-                    Image.open(images_paths[i]).convert("RGB"), y, x, h - y, w - x
+                    Image.open(image_path).convert("RGB"), y, x, h - y, w - x
                 )
 
                 # Apply transforms to image and append image to tensor list
@@ -126,5 +131,25 @@ def create_dataset():
     return tuple(dataset)
 
 
+# Create dataset
 ds = create_dataset()
-print(ds[0])
+
+
+def train_samples():
+    train_size = int(len(ds) * 0.7)
+    test_size = int(len(ds) - train_size)
+    train_set, _ = random_split(ds, [train_size, test_size])
+
+    train_dl = DataLoader(
+        dataset=train_set, batch_size=32, shuffle=False, num_workers=4
+    )
+
+    train_features, _ = next(iter(train_dl))
+
+    train_features_np = train_features.numpy()
+
+    for i in np.arange(3):
+        plt.imsave(f"test{i}.png", np.transpose(train_features_np[i], (1, 2, 0)))
+
+
+train_samples()
