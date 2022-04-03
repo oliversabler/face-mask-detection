@@ -164,7 +164,7 @@ def get_dataloader():
 """
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-print(device)
+print(f"Device: {device}")
 
 
 def get_model():
@@ -190,7 +190,7 @@ def train():
     model = get_model()
     optimizer = get_optimizer(model)
 
-    epochs = 1
+    epochs = 5
     loss_list = []
 
     for epoch in range(epochs):
