@@ -1,22 +1,20 @@
-import time
 import random
 import xmltodict
 import cv2
+import time
 
-from collections import OrderedDict
 from PIL import Image
 from os import listdir, path
+from datetime import datetime
 
 from matplotlib import pyplot as plt
 import numpy as np
 
 import torch
-import torch.nn as nn
-import torch.optim as optim
-import torchvision
 import torchvision.transforms as transforms
+from torchvision.models.detection import fasterrcnn_resnet50_fpn
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
-from torch.utils.data import Dataset, DataLoader, random_split
+from torch.utils.data import Dataset, DataLoader
 
 WITH_MASK = "with_mask"
 WITHOUT_MASK = "without_mask"
@@ -107,8 +105,6 @@ def visualize_random_image():
     fig.savefig("test.png")
 
 
-visualize_random_image()
-
 """
     Mask Dataset    
 """
@@ -125,17 +121,17 @@ class MaskDataset(Dataset):
         img = Image.open(img_path).convert("RGB")
         img = transforms.ToTensor()(img)
 
-        bndbox, labels = get_annotation(img_name)
-        bndboxes = torch.as_tensor(bndbox, dtype=torch.float32)
+        bndboxes, labels = get_annotation(img_name)
+        boxes = torch.as_tensor(bndboxes, dtype=torch.float32)
         labels = torch.as_tensor(labels, dtype=torch.int64)
 
-        area = (bndboxes[:, 2] - bndboxes[:, 0]) * (bndboxes[:, 3] - bndboxes[:, 1])
+        area = (boxes[:, 2] - boxes[:, 0]) * (boxes[:, 3] - boxes[:, 1])
         area = torch.as_tensor(area, dtype=torch.float32)
-        iscrowd = torch.zeros((len(bndbox),), dtype=torch.int64)
+        iscrowd = torch.zeros((len(boxes),), dtype=torch.int64)
 
         target = {}
 
-        target["boxes"] = bndbox
+        target["boxes"] = boxes
         target["labels"] = labels
         target["image_id"] = torch.tensor([index])
         target["area"] = area
@@ -146,4 +142,92 @@ class MaskDataset(Dataset):
         return len(self.filenames)
 
 
-mask_dataset = MaskDataset(filenames, img_paths)
+"""
+    Data Loader
+"""
+
+
+def collate_fn(batch):
+    return tuple(zip(*batch))
+
+
+def get_dataloader():
+    mask_dataset = MaskDataset(filenames, img_paths)
+
+    return DataLoader(
+        mask_dataset, batch_size=5, shuffle=True, num_workers=4, collate_fn=collate_fn
+    )
+
+
+"""
+    Model
+"""
+
+device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+print(device)
+
+
+def get_model():
+    num_classes = 4
+
+    model = fasterrcnn_resnet50_fpn(pretrained=True)
+
+    in_features = model.roi_heads.box_predictor.cls_score.in_features
+    model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
+
+    model = model.to(device)
+
+    return model
+
+
+def get_optimizer(model):
+    params = [p for p in model.parameters() if p.requires_grad]
+    return torch.optim.SGD(params, lr=0.01, momentum=0.9, weight_decay=0.0005)
+
+
+def train():
+    dataloader = get_dataloader()
+    model = get_model()
+    optimizer = get_optimizer(model)
+
+    epochs = 1
+    loss_list = []
+
+    for epoch in range(epochs):
+        print(f"Starting traning (epoch {epoch + 1}/{epochs}) --- {datetime.now()}")
+        loss_sub_list = []
+        for batch, (images, targets) in enumerate(dataloader):
+            start_time = time.time()
+
+            print(f"Batch #{batch + 1} | Batch size: {len(images)}")
+
+            images = list(image.to(device) for image in images)
+            targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
+
+            model.train()
+            loss_dict = model(images, targets)
+            losses = sum(loss for loss in loss_dict.values())
+            loss_value = losses.item()
+            loss_sub_list.append(loss_value)
+
+            optimizer.zero_grad()
+            losses.backward()
+            optimizer.step()
+
+            end_time = time.time()
+            print(
+                "#{} Loss: {:.3f} ({:.1f}s)".format(
+                    batch + 1, loss_value, end_time - start_time
+                )
+            )
+
+        epoch_loss = np.mean(loss_sub_list)
+        loss_list.append(epoch_loss)
+        print(f"{datetime.now()} | Epoch loss: {epoch_loss}")
+
+
+"""
+    Testing
+"""
+# visualize_random_image()
+train()
