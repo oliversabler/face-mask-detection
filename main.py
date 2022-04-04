@@ -119,7 +119,7 @@ class MaskDataset(Dataset):
     def __getitem__(self, index):
         img_name = self.filenames[index]
         img_path = path.join(self.img_paths, img_name)
-        img = Image.open(img_path).convert("RGB").resize((200, 200))
+        img = Image.open(img_path).convert("RGB")
         img = transforms.ToTensor()(img)
 
         bndboxes, labels = get_annotation(img_name)
@@ -199,7 +199,7 @@ def train():
     model = get_model()
     optimizer = get_optimizer(model)
 
-    epochs = 2
+    epochs = 3
     loss_list = []
 
     for epoch in range(epochs):
@@ -290,5 +290,5 @@ def predict_random_image():
     Testing
 """
 # visualize_random_image()
-# train()
+train()
 # predict_random_image()
