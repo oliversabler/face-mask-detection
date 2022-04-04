@@ -11,6 +11,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 
 import torch
+import torchvision
 import torchvision.transforms as transforms
 from torchvision.models.detection import fasterrcnn_resnet50_fpn
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
@@ -20,9 +21,9 @@ WITH_MASK = "with_mask"
 WITHOUT_MASK = "without_mask"
 MASK_WEARED_INCORRECT = "mask_weared_incorrect"
 
-img_paths = "./data/images/"
-xml_paths = "./data/annotations/"
-filenames = listdir(img_paths)
+imgs_path = "./data/images/"
+xmls_path = "./data/annotations/"
+filenames = listdir(imgs_path)
 
 """
     Visualization Helper Methods
@@ -58,7 +59,7 @@ def get_annotation(filename):
     bndboxes = []
     labels = []
 
-    xml_path = path.join(xml_paths, filename[:-3] + "xml")
+    xml_path = path.join(xmls_path, filename[:-3] + "xml")
 
     with open(xml_path) as file:
         xml = xmltodict.parse(file.read())
@@ -83,8 +84,8 @@ def mark_faces(img, bndboxes, labels):
     for bndbox, label in zip(bndboxes, labels):
         cv2.rectangle(
             img,
-            (bndbox[0], bndbox[1]),
-            (bndbox[2], bndbox[3]),
+            (int(bndbox[0]), int(bndbox[1])),
+            (int(bndbox[2]), int(bndbox[3])),
             color=get_box_color(label),
             thickness=1,
         )
@@ -94,7 +95,7 @@ def mark_faces(img, bndboxes, labels):
 def visualize_random_image():
     image_name = filenames[random.randint(0, len(filenames))]
     bndboxes, labels = get_annotation(image_name)
-    img_path = path.join(img_paths, image_name)
+    img_path = path.join(imgs_path, image_name)
 
     img = mark_faces(plt.imread(img_path), bndboxes, labels)
 
@@ -118,7 +119,7 @@ class MaskDataset(Dataset):
     def __getitem__(self, index):
         img_name = self.filenames[index]
         img_path = path.join(self.img_paths, img_name)
-        img = Image.open(img_path).convert("RGB")
+        img = Image.open(img_path).convert("RGB").resize((200, 200))
         img = transforms.ToTensor()(img)
 
         bndboxes, labels = get_annotation(img_name)
@@ -152,7 +153,7 @@ def collate_fn(batch):
 
 
 def get_dataloader():
-    mask_dataset = MaskDataset(filenames, img_paths)
+    mask_dataset = MaskDataset(filenames, imgs_path)
 
     return DataLoader(
         mask_dataset, batch_size=5, shuffle=True, num_workers=4, collate_fn=collate_fn
@@ -181,7 +182,15 @@ def get_model():
 
 
 def get_optimizer(model):
+    # Adam optimizer
+    # for param in model.parameters():
+    #     param.grad = None
+
+    # return torch.optim.Adam(model.parameters(), lr=0.01)
+
+    # SGD optimizer
     params = [p for p in model.parameters() if p.requires_grad]
+
     return torch.optim.SGD(params, lr=0.01, momentum=0.9, weight_decay=0.0005)
 
 
@@ -190,7 +199,7 @@ def train():
     model = get_model()
     optimizer = get_optimizer(model)
 
-    epochs = 5
+    epochs = 2
     loss_list = []
 
     for epoch in range(epochs):
@@ -225,9 +234,61 @@ def train():
         loss_list.append(epoch_loss)
         print(f"{datetime.now()} | Epoch loss: {epoch_loss}")
 
+    torch.save(model.state_dict(), f"./models/model.pth")
+    torch.save(model.state_dict(), f"./models/model_{datetime.now()}.pth")
+
+
+"""
+    Prediction
+"""
+
+
+def predict_img(img, nm_thrs=0.3, score_thrs=0.8):
+    test_img = transforms.ToTensor()(img)
+
+    model = get_model()
+    model.load_state_dict(torch.load("./models/model.pth"))
+    model.eval()
+
+    with torch.no_grad():
+        predictions = model(test_img.unsqueeze(0).to(device))
+
+    test_img = test_img.permute(1, 2, 0).numpy()
+    keep_boxes = torchvision.ops.nms(
+        predictions[0]["boxes"].cpu(), predictions[0]["scores"].cpu(), nm_thrs
+    )
+
+    score_filter = predictions[0]["scores"].cpu().numpy()[keep_boxes] > score_thrs
+
+    test_boxes = predictions[0]["boxes"].cpu().numpy()[keep_boxes][score_filter]
+    test_labels = predictions[0]["labels"].cpu().numpy()[keep_boxes][score_filter]
+
+    return test_img, test_boxes, test_labels
+
+
+def predict_random_image():
+    random_image_name = filenames[random.randint(0, len(filenames))]
+    test_img = Image.open(path.join(imgs_path, random_image_name)).convert("RGB")
+
+    # Prediction
+    test_img, test_boxes, test_labels = predict_img(test_img)
+    test_output = mark_faces(test_img, test_boxes, test_labels)
+
+    # Solution
+    bndbox, labels = get_annotation(random_image_name)
+    gt_output = mark_faces(test_img, bndbox, labels)
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
+    ax1.imshow(test_output)
+    ax1.set_xlabel("Prediction")
+    ax2.imshow(gt_output)
+    ax2.set_xlabel("Truth")
+    plt.savefig("prediction.png")
+
 
 """
     Testing
 """
 # visualize_random_image()
-train()
+# train()
+# predict_random_image()
