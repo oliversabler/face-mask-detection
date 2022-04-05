@@ -23,21 +23,6 @@ imgs_path = "./data/images/"
 xmls_path = "./data/annotations/"
 filenames = listdir(imgs_path)
 
-
-def visualize_random_image():
-    image_name = filenames[random.randint(0, len(filenames))]
-    bndboxes, labels = get_annotation(image_name, xmls_path)
-    img_path = path.join(imgs_path, image_name)
-
-    img = mark_faces(plt.imread(img_path), bndboxes, labels)
-
-    fig, ax = plt.subplots(1, 1, figsize=(10, 10))
-    plt.axis("off")
-    ax.legend(title=image_name)
-    ax.imshow(img)
-    fig.savefig("test.png")
-
-
 """
     Data Loader
 """
@@ -184,6 +169,8 @@ def predict_random_image():
 """
     Testing
 """
-# visualize_random_image()
+# from visualizers import visualize_random_image
+
+# visualize_random_image(filenames, imgs_path, xmls_path)
 # train()
 # predict_random_image()
