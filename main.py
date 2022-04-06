@@ -1,13 +1,10 @@
-from os import listdir
+from engine import train
 
-imgs_path = "./data/images/"
-xmls_path = "./data/annotations/"
-filenames = listdir(imgs_path)
-
-# train(filenames, imgs_path, xmls_path)
+train()
 
 # from visualizers import visualize_random_image
-# visualize_random_image(filenames, imgs_path, xmls_path)
+# visualize_random_image()
 
-# from predictions import predict_random_image
-# predict_random_image(filenames, imgs_path, xmls_path)
+# from prediction import predict_random_image
+
+# predict_random_image()

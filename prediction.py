@@ -9,18 +9,19 @@ import torchvision.transforms as transforms
 
 from matplotlib import pyplot as plt
 
-from models import load_resnet50_model_state
+from globals import FILENAMES, IMGS_PATH, DEVICE
+from model import load_resnet50_model_state
 from utils import get_annotation, mark_faces
 
 
-def predict_img(img, nm_thrs=0.3, score_thrs=0.8, device="cpu"):
+def predict_img(img, nm_thrs=0.3, score_thrs=0.8):
     test_img = transforms.ToTensor()(img)
 
-    model = load_resnet50_model_state("./models/model_2022-04-05 05:05:46.048959.pth")
+    model = load_resnet50_model_state("./models/model_2022-04-06 08:08:10.943822.pth")
     model.eval()
 
     with torch.no_grad():
-        predictions = model(test_img.unsqueeze(0).to(device))
+        predictions = model(test_img.unsqueeze(0).to(DEVICE))
 
     test_img = test_img.permute(1, 2, 0).numpy()
     keep_boxes = torchvision.ops.nms(
@@ -35,17 +36,17 @@ def predict_img(img, nm_thrs=0.3, score_thrs=0.8, device="cpu"):
     return test_img, test_boxes, test_labels
 
 
-def predict_random_image(filenames, imgs_path, xmls_path):
-    random_image_name = filenames[random.randint(0, len(filenames))]
-    test_img = Image.open(path.join(imgs_path, random_image_name)).convert("RGB")
+def predict_random_image():
+    random_image_name = FILENAMES[random.randint(0, len(FILENAMES))]
+    test_img = Image.open(path.join(IMGS_PATH, random_image_name)).convert("RGB")
 
     # Prediction
     test_img, test_boxes, test_labels = predict_img(test_img)
     test_output = mark_faces(test_img, test_boxes, test_labels)
 
     # Solution
-    bndbox, labels = get_annotation(random_image_name, xmls_path)
-    gt_output = mark_faces(test_img, bndbox, labels)
+    bbox, labels = get_annotation(random_image_name)
+    gt_output = mark_faces(test_img, bbox, labels)
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
     ax1.imshow(test_output)
