@@ -1,7 +1,10 @@
-from PIL import Image
+import cv2
 from os import path
 
+import numpy as np
+
 import torch
+from torchvision import transforms
 from torch.utils.data import Dataset, DataLoader
 
 from globals import FILENAMES, IMGS_PATH
@@ -17,10 +20,18 @@ class MaskDataset(Dataset):
         self.transforms = transforms
 
     def __getitem__(self, index):
+        # Read image name by index and construct path
         img_name = FILENAMES[index]
         img_path = path.join(IMGS_PATH, img_name)
-        img = Image.open(img_path).convert("RGB")
 
+        # Open image
+        img = cv2.imread(img_path, cv2.IMREAD_COLOR)
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB).astype(np.float32)
+        img = cv2.resize(img, (480, 480), cv2.INTER_AREA)
+        img /= 255.0
+
+        # Read annotation file linked to image to get boxes and labels
+        # Convert to Tensors
         boxes, labels = get_annotation(img_name)
         boxes = torch.as_tensor(boxes, dtype=torch.float32)
         labels = torch.as_tensor(labels, dtype=torch.int64)
@@ -45,8 +56,11 @@ class MaskDataset(Dataset):
 
         # iscrowd (UInt8Tensor[N]): instances with iscrowd=True will be ignored during evaluation.
         target["iscrowd"] = iscrowd
-        if self.transforms is not None:
-            img, target = self.transforms(img, target)
+
+        img = transforms.ToTensor()(img)
+        # Run transforms on image and target
+        # if self.transforms is not None:
+        #    img, target = self.transforms(img, target)
 
         return img, target
 
@@ -66,16 +80,32 @@ def collate_fn(batch):
     return tuple(zip(*batch))
 
 
-# Todo: Move?
-#       Divide dataset to training (~70%) and testing (~30%)
 def get_dataloader():
     mask_dataset = MaskDataset(get_transform(train=True))
-    print("test")
-    return DataLoader(
+    mask_dataset_test = MaskDataset(get_transform(train=False))
+
+    indices = torch.randperm(len(mask_dataset)).tolist()
+    mask_dataset = torch.utils.data.Subset(mask_dataset, indices[:-150])
+    mask_dataset_test = torch.utils.data.Subset(mask_dataset_test, indices[-150:])
+
+    train_dataset = DataLoader(
         mask_dataset,
-        batch_size=5,
+        batch_size=20,
         shuffle=True,
         num_workers=4,
-        pin_memory=True,
+        drop_last=True,
+        persistent_workers=True,
         collate_fn=collate_fn,
     )
+
+    test_dataset = DataLoader(
+        mask_dataset_test,
+        batch_size=1,
+        shuffle=True,
+        num_workers=4,
+        drop_last=True,
+        persistent_workers=True,
+        collate_fn=collate_fn,
+    )
+
+    return train_dataset, test_dataset

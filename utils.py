@@ -16,16 +16,16 @@ MASK_WEARED_INCORRECT = "mask_weared_incorrect"
 def get_label_id(label):
     """
     Convert label to an integer:
-        WITH_MASK = 0
-        WITHOUT_MASK = 1
-        MASK_WEARED_INCORRECT = 2
+        WITH_MASK = 1
+        WITHOUT_MASK = 2
+        MASK_WEARED_INCORRECT = 3
     """
     if label == WITH_MASK:
-        label_id = 2
-    elif label == WITHOUT_MASK:
         label_id = 1
+    elif label == WITHOUT_MASK:
+        label_id = 2
     elif label == MASK_WEARED_INCORRECT:
-        label_id = 0
+        label_id = 3
     return label_id
 
 
@@ -61,15 +61,15 @@ def get_annotation(filename):
 def get_box_color(label):
     """
     Set box color depending on label:
-        0 = Green
-        1 = Red
-        2 = Blue
+        1 = Green
+        2 = Red
+        3 = Blue
     """
-    if label == 2:
+    if label == 1:
         color = (0, 255, 0)
-    elif label == 1:
+    elif label == 2:
         color = (0, 0, 255)
-    else:
+    elif label == 3:
         color = (255, 0, 0)
     return color
 
