@@ -2,9 +2,7 @@ from datetime import datetime
 
 import torch
 from globals import DEVICE
-from model import get_resnet50_model
-from optims import get_sgd_optimizer
-from dataset import get_dataloader
+from model import get_resnet50_model, get_sgd_optimizer, get_dataloader
 
 from pytorch_helpers.engine import evaluate, train_one_epoch
 
@@ -16,7 +14,7 @@ def train():
 
     model = get_resnet50_model()
     optimizer = get_sgd_optimizer(model)
-    dataloader, dataloader_test = get_dataloader()
+    dataloader, dataloader_test = get_dataloader(take_one=False)
 
     lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=3, gamma=0.1)
 

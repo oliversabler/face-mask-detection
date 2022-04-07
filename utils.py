@@ -13,7 +13,7 @@ WITHOUT_MASK = "without_mask"
 MASK_WEARED_INCORRECT = "mask_weared_incorrect"
 
 
-def get_label_id(label):
+def _get_label_id(label):
     """
     Convert label to an integer:
         WITH_MASK = 1
@@ -53,12 +53,12 @@ def get_annotation(filename):
             bboxes.append([xmin, ymin, xmax, ymax])
 
             label = obj["name"]
-            labels.append(get_label_id(label))
+            labels.append(_get_label_id(label))
 
         return bboxes, labels
 
 
-def get_box_color(label):
+def _get_box_color(label):
     """
     Set box color depending on label:
         1 = Green
@@ -88,7 +88,7 @@ def mark_faces(img, bboxes, labels):
             img,
             (int(bbox[0]), int(bbox[1])),
             (int(bbox[2]), int(bbox[3])),
-            color=get_box_color(label),
+            color=_get_box_color(label),
             thickness=1,
         )
     return cv2.cvtColor(img, cv2.COLOR_RGB2BGR)

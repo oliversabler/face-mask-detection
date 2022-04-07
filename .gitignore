@@ -1,6 +1,7 @@
 # Exclude 400mb dataset
 data/
 models/
+temp/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
