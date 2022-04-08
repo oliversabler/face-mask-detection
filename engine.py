@@ -18,7 +18,7 @@ def train():
 
     lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=3, gamma=0.1)
 
-    epochs = 1
+    epochs = 5
     print(f"Number of epochs: {epochs}")
 
     print("Starting...")

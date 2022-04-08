@@ -29,13 +29,13 @@ def _get_label_id(label):
     return label_id
 
 
-def get_annotation(filename):
+def get_annotation(filename, width=0, height=0):
     """
     Get annotation data in xml file for image based on filename.
         bboxes: face coordinates
         labels: mask wearing status
     """
-    bboxes = []
+    boxes = []
     labels = []
 
     xml_path = path.join(XMLS_PATH, filename[:-3] + "xml")
@@ -50,12 +50,23 @@ def get_annotation(filename):
 
         for obj in obj:
             xmin, ymin, xmax, ymax = list(map(int, obj["bndbox"].values()))
-            bboxes.append([xmin, ymin, xmax, ymax])
+            boxes.append([xmin, ymin, xmax, ymax])
 
             label = obj["name"]
             labels.append(_get_label_id(label))
 
-        return bboxes, labels
+        if width != 0 and height != 0:
+            boxes_corr = []
+            for box in boxes:
+                xmin_corr = (box[0] / width) * 480
+                xmax_corr = (box[2] / width) * 480
+                ymin_corr = (box[1] / height) * 480
+                ymax_corr = (box[3] / height) * 480
+                boxes_corr.append([xmin_corr, ymin_corr, xmax_corr, ymax_corr])
+
+            return boxes_corr, labels
+
+        return boxes, labels
 
 
 def _get_box_color(label):

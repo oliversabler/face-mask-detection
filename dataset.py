@@ -8,7 +8,7 @@ from torch.utils.data import Dataset
 from torchvision import transforms as T
 
 from globals import FILENAMES, IMGS_PATH
-from utils import get_annotation
+from utils import get_annotation, mark_faces
 
 
 class MaskDataset(Dataset):
@@ -21,13 +21,13 @@ class MaskDataset(Dataset):
 
         img = cv2.imread(img_path, cv2.IMREAD_COLOR)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB).astype(np.float32)
-        # height, width, _ = img.shape
-        # img = cv2.resize(img, (width, height), cv2.INTER_AREA)
-        img /= 255.0
-        img = T.ToTensor()(img)
+        h, w, _ = img.shape
 
-        boxes, labels = get_annotation(img_name)
-        print(labels)
+        img = cv2.resize(img, (480, 480), cv2.INTER_AREA)
+        img /= 255.0
+
+        boxes, labels = get_annotation(img_name, w, h)
+
         boxes = torch.as_tensor(boxes, dtype=torch.float32)
         labels = torch.as_tensor(labels, dtype=torch.int64)
 
@@ -48,6 +48,18 @@ class MaskDataset(Dataset):
         target["labels"] = labels
         target["area"] = area
         target["iscrowd"] = iscrowd
+
+        # Testing
+        # from matplotlib import pyplot as plt
+
+        # img = mark_faces(img, boxes, labels)
+        # fig, ax = plt.subplots(1, 1)
+        # plt.axis("off")
+        # ax.legend(title=img_name)
+        # ax.imshow(img)
+        # fig.savefig("./temp/visualization.png", bbox_inches="tight", pad_inches=0)
+
+        img = T.ToTensor()(img)
 
         return img, target
 
