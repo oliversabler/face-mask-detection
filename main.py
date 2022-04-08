@@ -9,4 +9,6 @@
 
 from prediction import predict_random_image
 
-predict_random_image("./models/model_2022-04-08 04:48:32.522417.pth")
+predict_random_image(
+    model_path="./models/model_2022-04-08 04:48:32.522417.pth", num_preds=10
+)

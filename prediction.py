@@ -37,24 +37,25 @@ def _predict_img(model_path, img, nm_thrs=0.3, score_thrs=0.8):
     return img, boxes, labels
 
 
-def predict_random_image(model_path):
-    img_name = FILENAMES[random.randint(0, len(FILENAMES))]
-    img_path = path.join(IMGS_PATH, img_name)
+def predict_random_image(model_path, num_preds=1):
+    for i in range(num_preds):
+        img_name = FILENAMES[random.randint(0, len(FILENAMES))]
+        img_path = path.join(IMGS_PATH, img_name)
 
-    img = cv2.imread(img_path, cv2.IMREAD_COLOR)
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        img = cv2.imread(img_path, cv2.IMREAD_COLOR)
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
-    # Prediction
-    img, boxes, labels = _predict_img(model_path, img)
-    p_output = mark_faces(img, boxes, labels)
+        # Prediction
+        img, boxes, labels = _predict_img(model_path, img)
+        p_output = mark_faces(img, boxes, labels)
 
-    # Solution
-    boxes, labels = get_annotation(img_name)
-    t_output = mark_faces(img, boxes, labels)
+        # Solution
+        boxes, labels = get_annotation(img_name)
+        t_output = mark_faces(img, boxes, labels)
 
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
-    ax1.imshow(p_output)
-    ax1.set_xlabel("Prediction")
-    ax2.imshow(t_output)
-    ax2.set_xlabel("Truth")
-    fig.savefig("./temp/prediction.png")
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
+        ax1.imshow(p_output)
+        ax1.set_xlabel("Prediction")
+        ax2.imshow(t_output)
+        ax2.set_xlabel("Truth")
+        fig.savefig(f"./temp/prediction_{i}.png")
