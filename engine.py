@@ -32,6 +32,14 @@ def _log_iter(epoch, loss_value, time, lr):
     )
 
 
+def _log_iter_eval(epoch, prediction, truth, time):
+    print(
+        "Epoch [{}] Evaluation - Prediction no. boxes: {}, Truth no. boxes: {}, Time: {:.4f}".format(
+            epoch, prediction, truth, time
+        )
+    )
+
+
 def _train_epoch(model, optimizer, dataloader, epoch):
     model.train()
 
@@ -70,6 +78,29 @@ def _train_epoch(model, optimizer, dataloader, epoch):
     lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=3, gamma=0.1)
 
 
+def _evaluate_epoch(model, dataloader, epoch):
+    model.eval()
+
+    with torch.no_grad():
+        i = 0
+        for images, targets in dataloader:
+            time_start = time.time()
+
+            images = list(image.to(DEVICE) for image in images)
+            targets = [{k: v.to(DEVICE) for k, v in t.items()} for t in targets]
+
+            predictions = model(images)
+
+            _log_iter_eval(
+                epoch,
+                len(predictions[i]["labels"]),
+                len(targets[i]["labels"]),
+                time.time() - time_start,
+            )
+
+            i += 1
+
+
 def train():
     print("[Training]")
 
@@ -77,15 +108,15 @@ def train():
 
     model = get_resnet50_model()
     optimizer = get_sgd_optimizer(model)
-    dataloader, dataloader_test = get_dataloader(take_one=False)
+    dataloader, dataloader_test = get_dataloader(take_one=True)
 
-    epochs = 10
+    epochs = 1
     print(f"Number of epochs: {epochs}")
 
     print("Starting...")
     for epoch in range(epochs):
         _train_epoch(model, optimizer, dataloader, epoch)
-        # todo: _evaluate_epoch()
+        _evaluate_epoch(model, dataloader_test, epoch)
 
         # PyTorch
         # train_one_epoch(model, optimizer, dataloader, DEVICE, epoch, print_freq=1)
