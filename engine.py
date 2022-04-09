@@ -21,10 +21,11 @@ def _warmup_lr_scheduler(optimizer, warmup_iters, warmup_factor):
     return torch.optim.lr_scheduler.LambdaLR(optimizer, f)
 
 
-def _log_iter(epoch, loss_value, time, lr):
+def _log_iter(epoch, i, loss_value, time, lr):
     print(
-        "Epoch [{}] - Loss: {:.4f}, Time: {:.4f}, Learning Rate: {:.6f}".format(
+        "Epoch [{}] Iteration [{}] - Loss: {:.4f}, Time: {:.4f}, Learning Rate: {:.6f}".format(
             epoch,
+            i,
             loss_value,
             time,
             lr,
@@ -32,10 +33,10 @@ def _log_iter(epoch, loss_value, time, lr):
     )
 
 
-def _log_iter_eval(epoch, prediction, truth, time):
+def _log_iter_eval(epoch, i, prediction, truth, time):
     print(
-        "Epoch [{}] Evaluation - Prediction no. boxes: {}, Truth no. boxes: {}, Time: {:.4f}".format(
-            epoch, prediction, truth, time
+        "Epoch [{}] Iteration [{}] Evaluation - Prediction no. boxes: {}, Truth no. boxes: {}, Time: {:.4f}".format(
+            epoch, i, prediction, truth, time
         )
     )
 
@@ -49,6 +50,8 @@ def _train_epoch(model, optimizer, dataloader, epoch):
         warmup_iters = min(1000, len(dataloader) - 1)
 
         lr_scheduler = _warmup_lr_scheduler(optimizer, warmup_iters, warmup_factor)
+
+    i = 0
 
     for images, targets in dataloader:
         time_start = time.time()
@@ -72,8 +75,14 @@ def _train_epoch(model, optimizer, dataloader, epoch):
             lr_scheduler.step()
 
         _log_iter(
-            epoch, loss_value, time.time() - time_start, optimizer.param_groups[0]["lr"]
+            epoch,
+            i,
+            loss_value,
+            time.time() - time_start,
+            optimizer.param_groups[0]["lr"],
         )
+
+        i += 1
 
     lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=3, gamma=0.1)
 
@@ -93,6 +102,7 @@ def _evaluate_epoch(model, dataloader, epoch):
 
             _log_iter_eval(
                 epoch,
+                i,
                 len(predictions[i]["labels"]),
                 len(targets[i]["labels"]),
                 time.time() - time_start,
