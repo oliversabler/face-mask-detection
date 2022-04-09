@@ -19,14 +19,17 @@ class MaskDataset(Dataset):
         img_name = FILENAMES[index]
         img_path = path.join(IMGS_PATH, img_name)
 
+        # Test PIL image again when running a batch of 1
         img = cv2.imread(img_path, cv2.IMREAD_COLOR)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB).astype(np.float32)
-        h, w, _ = img.shape
 
-        img = cv2.resize(img, (480, 480), cv2.INTER_AREA)
+        w, h = img.shape[1], img.shape[0]
+        w_r, h_r = w * 2, h * 2
+
+        img = cv2.resize(img, (w_r, h_r), cv2.INTER_AREA)
         img /= 255.0
 
-        boxes, labels = get_annotation(img_name, w, h)
+        boxes, labels = get_annotation(img_name, w, h, w_r, h_r)
 
         boxes = torch.as_tensor(boxes, dtype=torch.float32)
         labels = torch.as_tensor(labels, dtype=torch.int64)
@@ -58,6 +61,9 @@ class MaskDataset(Dataset):
         # ax.legend(title=img_name)
         # ax.imshow(img)
         # fig.savefig("./temp/visualization.png", bbox_inches="tight", pad_inches=0)
+
+        # Todo: Transforms
+        # https://stackoverflow.com/questions/63068332/does-pytorch-allow-to-apply-given-transformations-to-bounding-box-coordinates-of
 
         img = T.ToTensor()(img)
 

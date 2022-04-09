@@ -10,7 +10,7 @@ from globals import DEVICE
 def get_resnet50_model():
     model = fasterrcnn_resnet50_fpn(pretrained=True)
 
-    num_classes = 4
+    num_classes = 4  # do I need 5?
     in_features = model.roi_heads.box_predictor.cls_score.in_features
     model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
 

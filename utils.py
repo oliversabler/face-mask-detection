@@ -29,7 +29,7 @@ def _get_label_id(label):
     return label_id
 
 
-def get_annotation(filename, width=0, height=0):
+def get_annotation(filename, width=0, height=0, width_resized=0, height_resized=0):
     """
     Get annotation data in xml file for image based on filename.
         bboxes: face coordinates
@@ -58,10 +58,10 @@ def get_annotation(filename, width=0, height=0):
         if width != 0 and height != 0:
             boxes_corr = []
             for box in boxes:
-                xmin_corr = (box[0] / width) * 480
-                xmax_corr = (box[2] / width) * 480
-                ymin_corr = (box[1] / height) * 480
-                ymax_corr = (box[3] / height) * 480
+                xmin_corr = (box[0] / width) * width_resized
+                xmax_corr = (box[2] / width) * width_resized
+                ymin_corr = (box[1] / height) * height_resized
+                ymax_corr = (box[3] / height) * height_resized
                 boxes_corr.append([xmin_corr, ymin_corr, xmax_corr, ymax_corr])
 
             return boxes_corr, labels
@@ -71,7 +71,7 @@ def get_annotation(filename, width=0, height=0):
 
 def _get_box_color(label):
     """
-    Set box color depending on label:
+    Set box color depending on label (cv2 uses BGR instead of RGB):
         1 = Green
         2 = Red
         3 = Blue
@@ -93,7 +93,8 @@ def mark_faces(img, bboxes, labels):
         WITHOUT_MASK = Red
         MASK_WEARED_INCORRECT = Blue
     """
-    img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+    # Running cv2.cvtColor() twice seems inefficient, but duplicated boxes and wierd colors if not used.
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     for bbox, label in zip(bboxes, labels):
         cv2.rectangle(
             img,
@@ -102,4 +103,4 @@ def mark_faces(img, bboxes, labels):
             color=_get_box_color(label),
             thickness=1,
         )
-    return cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+    return cv2.cvtColor(img, cv2.COLOR_BGR2RGB)

@@ -7,7 +7,7 @@ from matplotlib import pyplot as plt
 
 import torch
 import torchvision
-import torchvision.transforms as transforms
+import torchvision.transforms as T
 
 from globals import FILENAMES, IMGS_PATH, DEVICE
 from model import load_resnet50_model_state
@@ -15,7 +15,7 @@ from utils import get_annotation, mark_faces
 
 
 def _predict_img(model_path, img, nm_thrs=0.3, score_thrs=0.8):
-    img = transforms.ToTensor()(img)
+    img = T.ToTensor()(img)
 
     model = load_resnet50_model_state(model_path)
     model.eval()
@@ -46,12 +46,12 @@ def predict_random_image(model_path, num_preds=1):
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
         # Prediction
-        img, boxes, labels = _predict_img(model_path, img)
-        p_output = mark_faces(img, boxes, labels)
+        p_img, p_boxes, p_labels = _predict_img(model_path, img)
+        p_output = mark_faces(p_img, p_boxes, p_labels)
 
         # Solution
-        boxes, labels = get_annotation(img_name)
-        t_output = mark_faces(img, boxes, labels)
+        t_boxes, t_labels = get_annotation(img_name)
+        t_output = mark_faces(img, t_boxes, t_labels)
 
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
         ax1.imshow(p_output)
