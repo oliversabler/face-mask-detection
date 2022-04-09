@@ -23,7 +23,7 @@ def _warmup_lr_scheduler(optimizer, warmup_iters, warmup_factor):
 
 def _log_iter(epoch, i, loss_value, time, lr):
     print(
-        "Epoch [{}] Iteration [{}] - Loss: {:.4f}, Time: {:.4f}, Learning Rate: {:.6f}".format(
+        "Training | Epoch [{}] Iteration [{}] - Loss: {:.4f}, Time: {:.4f}, Learning Rate: {:.6f}s".format(
             epoch,
             i,
             loss_value,
@@ -35,7 +35,7 @@ def _log_iter(epoch, i, loss_value, time, lr):
 
 def _log_iter_eval(epoch, i, prediction, truth, time):
     print(
-        "Epoch [{}] Iteration [{}] Evaluation - Prediction no. boxes: {}, Truth no. boxes: {}, Time: {:.4f}".format(
+        "Evaluation | Epoch [{}] Iteration [{}] - Boxes [P]: {}, Boxes [A]: {}, Time: {:.4f}s".format(
             epoch, i, prediction, truth, time
         )
     )
@@ -74,13 +74,14 @@ def _train_epoch(model, optimizer, dataloader, epoch):
         if lr_scheduler is not None:
             lr_scheduler.step()
 
-        _log_iter(
-            epoch,
-            i,
-            loss_value,
-            time.time() - time_start,
-            optimizer.param_groups[0]["lr"],
-        )
+        if i % 10 == 0:
+            _log_iter(
+                epoch,
+                i,
+                loss_value,
+                time.time() - time_start,
+                optimizer.param_groups[0]["lr"],
+            )
 
         i += 1
 
@@ -100,13 +101,14 @@ def _evaluate_epoch(model, dataloader, epoch):
 
             predictions = model(images)
 
-            _log_iter_eval(
-                epoch,
-                i,
-                len(predictions[i]["labels"]),
-                len(targets[i]["labels"]),
-                time.time() - time_start,
-            )
+            if i % 10 == 0:
+                _log_iter_eval(
+                    epoch,
+                    i,
+                    len(predictions[0]["labels"]),
+                    len(targets[0]["labels"]),
+                    time.time() - time_start,
+                )
 
             i += 1
 
@@ -125,12 +127,14 @@ def train():
 
     print("Starting...")
     for epoch in range(epochs):
+        # Todo: Log average
+        #       Is LR step correct?
         _train_epoch(model, optimizer, dataloader, epoch)
         _evaluate_epoch(model, dataloader_test, epoch)
 
         # PyTorch
         # train_one_epoch(model, optimizer, dataloader, DEVICE, epoch, print_freq=1)
-        # evaluate(model, dataloader_test, DEVICE)
+        evaluate(model, dataloader_test, DEVICE)
 
     torch.save(model.state_dict(), f"./models/model.pth")
     torch.save(model.state_dict(), f"./models/model_{datetime.now()}.pth")

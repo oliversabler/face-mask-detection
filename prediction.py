@@ -34,7 +34,7 @@ def _predict_img(model_path, img, nm_thrs=0.3, score_thrs=0.8):
     boxes = predictions[0]["boxes"].cpu().numpy()[keep_boxes][score_filter]
     labels = predictions[0]["labels"].cpu().numpy()[keep_boxes][score_filter]
 
-    print("Prediction no. boxes: {}".format(len(predictions[0]["labels"])))
+    print("Prediction labels: {}".format(labels))
 
     return img, boxes, labels
 

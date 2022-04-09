@@ -29,6 +29,22 @@ def _get_label_id(label):
     return label_id
 
 
+def _get_label(id):
+    """
+    Convert integer to a label:
+        1 = WITH_MASK
+        2 = WITHOUT_MASK
+        3 = MASK_WEARED_INCORRECT
+    """
+    if id == 1:
+        label = WITH_MASK
+    elif id == 2:
+        label = WITHOUT_MASK
+    elif id == 3:
+        label = MASK_WEARED_INCORRECT
+    return label
+
+
 def get_annotation(filename, width=0, height=0, width_resized=0, height_resized=0):
     """
     Get annotation data in xml file for image based on filename.
@@ -102,5 +118,14 @@ def mark_faces(img, bboxes, labels):
             (int(bbox[2]), int(bbox[3])),
             color=_get_box_color(label),
             thickness=1,
+        )
+        # Todo: Print how sure prediction in %
+        cv2.putText(
+            img,
+            _get_label(label),
+            (int(bbox[0]), int(bbox[1] - 2)),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.4,
+            color=_get_box_color(label),
         )
     return cv2.cvtColor(img, cv2.COLOR_BGR2RGB)

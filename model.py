@@ -21,7 +21,7 @@ def get_resnet50_model():
 
 def load_resnet50_model_state(path):
     model = get_resnet50_model()
-    model.load_state_dict(torch.load(path))
+    model.load_state_dict(torch.load(path, map_location=torch.device(DEVICE)))
     return model
 
 
