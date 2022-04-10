@@ -5,44 +5,8 @@ from os import path
 
 from globals import XMLS_PATH
 
-"""
-Object labels as constants
-"""
-WITH_MASK = "with_mask"
-WITHOUT_MASK = "without_mask"
-MASK_WEARED_INCORRECT = "mask_weared_incorrect"
-
-
-def _get_label_id(label):
-    """
-    Convert label to an integer:
-        WITH_MASK = 1
-        WITHOUT_MASK = 2
-        MASK_WEARED_INCORRECT = 3
-    """
-    if label == WITH_MASK:
-        label_id = 1
-    elif label == WITHOUT_MASK:
-        label_id = 2
-    elif label == MASK_WEARED_INCORRECT:
-        label_id = 3
-    return label_id
-
-
-def _get_label(id):
-    """
-    Convert integer to a label:
-        1 = WITH_MASK
-        2 = WITHOUT_MASK
-        3 = MASK_WEARED_INCORRECT
-    """
-    if id == 1:
-        label = WITH_MASK
-    elif id == 2:
-        label = WITHOUT_MASK
-    elif id == 3:
-        label = MASK_WEARED_INCORRECT
-    return label
+classes = ["", "with_mask", "without_mask", "mask_weared_incorrect"]
+box_colors = [(), (0, 255, 0), (0, 0, 255), (255, 0, 0)]
 
 
 def get_annotation(filename, width=0, height=0, width_resized=0, height_resized=0):
@@ -51,7 +15,7 @@ def get_annotation(filename, width=0, height=0, width_resized=0, height_resized=
         bboxes: face coordinates
         labels: mask wearing status
     """
-    boxes = []
+    bboxes = []
     labels = []
 
     xml_path = path.join(XMLS_PATH, filename[:-3] + "xml")
@@ -66,14 +30,14 @@ def get_annotation(filename, width=0, height=0, width_resized=0, height_resized=
 
         for obj in obj:
             xmin, ymin, xmax, ymax = list(map(int, obj["bndbox"].values()))
-            boxes.append([xmin, ymin, xmax, ymax])
+            bboxes.append([xmin, ymin, xmax, ymax])
 
             label = obj["name"]
-            labels.append(_get_label_id(label))
+            labels.append(classes.index(label))
 
         if width != 0 and height != 0:
             boxes_corr = []
-            for box in boxes:
+            for box in bboxes:
                 xmin_corr = (box[0] / width) * width_resized
                 xmax_corr = (box[2] / width) * width_resized
                 ymin_corr = (box[1] / height) * height_resized
@@ -82,32 +46,16 @@ def get_annotation(filename, width=0, height=0, width_resized=0, height_resized=
 
             return boxes_corr, labels
 
-        return boxes, labels
-
-
-def _get_box_color(label):
-    """
-    Set box color depending on label (cv2 uses BGR instead of RGB):
-        1 = Green
-        2 = Red
-        3 = Blue
-    """
-    if label == 1:
-        color = (0, 255, 0)
-    elif label == 2:
-        color = (0, 0, 255)
-    elif label == 3:
-        color = (255, 0, 0)
-    return color
+        return bboxes, labels
 
 
 def mark_faces(img, bboxes, labels):
     """
     Mark faces by drawing a box around the face.
     The box color is set depending on label value:
-        WITH_MASK = Green
-        WITHOUT_MASK = Red
-        MASK_WEARED_INCORRECT = Blue
+        with_mask = Green
+        without_mask = Red
+        mask_weared_incorrect = Blue
     """
     # Running cv2.cvtColor() twice seems inefficient, but duplicated boxes and wierd colors if not used.
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -116,16 +64,16 @@ def mark_faces(img, bboxes, labels):
             img,
             (int(bbox[0]), int(bbox[1])),
             (int(bbox[2]), int(bbox[3])),
-            color=_get_box_color(label),
+            color=box_colors[label],
             thickness=1,
         )
         # Todo: Print how sure prediction in %
         cv2.putText(
             img,
-            _get_label(label),
+            classes[label],
             (int(bbox[0]), int(bbox[1] - 2)),
             cv2.FONT_HERSHEY_SIMPLEX,
             0.4,
-            color=_get_box_color(label),
+            color=box_colors[label],
         )
     return cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
