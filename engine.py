@@ -3,10 +3,12 @@ import sys
 import time
 
 from datetime import datetime
+from cv2 import log
 
 import torch
 from globals import DEVICE
 from model import get_resnet50_model, get_sgd_optimizer, get_dataloader
+from utils import Logger
 
 from pytorch_helpers.engine import evaluate, train_one_epoch
 
@@ -21,26 +23,6 @@ def _warmup_lr_scheduler(optimizer, warmup_iters, warmup_factor):
     return torch.optim.lr_scheduler.LambdaLR(optimizer, f)
 
 
-def _log_iter(epoch, i, loss_value, time, lr):
-    print(
-        "Training | Epoch [{}] Iteration [{}] - Loss: {:.4f}, Time: {:.4f}, Learning Rate: {:.6f}s".format(
-            epoch,
-            i,
-            loss_value,
-            time,
-            lr,
-        )
-    )
-
-
-def _log_iter_eval(epoch, i, prediction, truth, time):
-    print(
-        "Evaluation | Epoch [{}] Iteration [{}] - Boxes [P]: {}, Boxes [A]: {}, Time: {:.4f}s".format(
-            epoch, i, prediction, truth, time
-        )
-    )
-
-
 def _train_epoch(model, optimizer, dataloader, epoch):
     model.train()
 
@@ -52,6 +34,7 @@ def _train_epoch(model, optimizer, dataloader, epoch):
         lr_scheduler = _warmup_lr_scheduler(optimizer, warmup_iters, warmup_factor)
 
     i = 0
+    logger = Logger("Training", epoch, i)
 
     for images, targets in dataloader:
         time_start = time.time()
@@ -75,13 +58,10 @@ def _train_epoch(model, optimizer, dataloader, epoch):
             lr_scheduler.step()
 
         if i % 10 == 0:
-            _log_iter(
-                epoch,
-                i,
-                loss_value,
-                time.time() - time_start,
-                optimizer.param_groups[0]["lr"],
-            )
+            logger.update(loss=loss_value)
+            logger.update(lr=optimizer.param_groups[0]["lr"])
+            logger.update(time=time.time() - time_start)
+            print(logger)
 
         i += 1
 
@@ -91,8 +71,10 @@ def _train_epoch(model, optimizer, dataloader, epoch):
 def _evaluate_epoch(model, dataloader, epoch):
     model.eval()
 
+    i = 0
+    logger = Logger("Testing", epoch, i)
+
     with torch.no_grad():
-        i = 0
         for images, targets in dataloader:
             time_start = time.time()
 
@@ -102,13 +84,10 @@ def _evaluate_epoch(model, dataloader, epoch):
             predictions = model(images)
 
             if i % 10 == 0:
-                _log_iter_eval(
-                    epoch,
-                    i,
-                    len(predictions[0]["labels"]),
-                    len(targets[0]["labels"]),
-                    time.time() - time_start,
-                )
+                logger.update(prediction=predictions[0]["labels"])
+                logger.update(target=targets[0]["labels"])
+                logger.update(time=time.time() - time_start)
+                print(logger)
 
             i += 1
 
@@ -134,7 +113,7 @@ def train():
 
         # PyTorch
         # train_one_epoch(model, optimizer, dataloader, DEVICE, epoch, print_freq=1)
-        evaluate(model, dataloader_test, DEVICE)
+        # evaluate(model, dataloader_test, DEVICE)
 
     torch.save(model.state_dict(), f"./models/model.pth")
     torch.save(model.state_dict(), f"./models/model_{datetime.now()}.pth")

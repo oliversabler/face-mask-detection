@@ -5,6 +5,32 @@ from os import path
 
 from globals import XMLS_PATH
 
+
+class Logger:
+    def __init__(self, name, epoch, iteration):
+        self.name = name
+        self.epoch = epoch
+        self.iteration = iteration
+        self.metrics = {}
+
+    def __str__(self):
+        msg = "{} | Epoch [{}] Iteration [{}] - ".format(
+            self.name, self.epoch, self.iteration
+        )
+
+        for k, v in sorted(self.metrics.items()):
+            if type(v) is float:
+                msg += "{}: {:.4}, ".format(k, v)
+            else:
+                msg += "{}: {}, ".format(k, v)
+
+        return msg
+
+    def update(self, **kwargs):
+        for k, v in kwargs.items():
+            self.metrics[k] = v
+
+
 classes = ["", "with_mask", "without_mask", "mask_weared_incorrect"]
 box_colors = [(), (0, 255, 0), (0, 0, 255), (255, 0, 0)]
 
