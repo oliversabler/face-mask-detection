@@ -42,7 +42,7 @@ def get_dataloader(train_batch_size=1, test_batch_size=1, take_one=False):
     indices = torch.randperm(len(mask_dataset)).tolist()
 
     if take_one:
-        mask_dataset = Subset(mask_dataset, indices[:1])
+        mask_dataset = Subset(mask_dataset, indices[:11])
         mask_dataset_test = Subset(mask_dataset_test, indices[:1])
     else:
         mask_dataset = Subset(mask_dataset, indices[:-100])

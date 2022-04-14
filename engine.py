@@ -3,7 +3,6 @@ import sys
 import time
 
 from datetime import datetime
-from cv2 import log
 
 import torch
 from globals import DEVICE
@@ -33,8 +32,10 @@ def _train_epoch(model, optimizer, dataloader, epoch):
 
         lr_scheduler = _warmup_lr_scheduler(optimizer, warmup_iters, warmup_factor)
 
-    i = 0
-    logger = Logger("Training", epoch, i)
+    logger = Logger("Training", epoch)
+
+    avg_loss = []
+    itr_time = []
 
     for images, targets in dataloader:
         time_start = time.time()
@@ -50,6 +51,9 @@ def _train_epoch(model, optimizer, dataloader, epoch):
             print(f"Loss is {loss_value}, stopping training")
             sys.exit(1)
 
+        avg_loss.append(loss_value)
+        itr_time.append(time.time() - time_start)
+
         optimizer.zero_grad()
         losses.backward()
         optimizer.step()
@@ -57,13 +61,15 @@ def _train_epoch(model, optimizer, dataloader, epoch):
         if lr_scheduler is not None:
             lr_scheduler.step()
 
-        if i % 10 == 0:
-            logger.update(loss=loss_value)
+        if logger.iteration % 10 == 0:
+            logger.update(loss=sum(avg_loss) / 10)
             logger.update(lr=optimizer.param_groups[0]["lr"])
-            logger.update(time=time.time() - time_start)
+            logger.update(time=sum(itr_time))
             print(logger)
 
-        i += 1
+            avg_loss.clear()
+
+        logger.increment()
 
     lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=3, gamma=0.1)
 
@@ -71,8 +77,7 @@ def _train_epoch(model, optimizer, dataloader, epoch):
 def _evaluate_epoch(model, dataloader, epoch):
     model.eval()
 
-    i = 0
-    logger = Logger("Testing", epoch, i)
+    logger = Logger("Testing", epoch)
 
     with torch.no_grad():
         for images, targets in dataloader:
@@ -83,13 +88,13 @@ def _evaluate_epoch(model, dataloader, epoch):
 
             predictions = model(images)
 
-            if i % 10 == 0:
+            if logger.iteration % 10 == 0:
                 logger.update(prediction=predictions[0]["labels"])
                 logger.update(target=targets[0]["labels"])
                 logger.update(time=time.time() - time_start)
                 print(logger)
 
-            i += 1
+            logger.increment()
 
 
 def train():

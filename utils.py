@@ -7,7 +7,7 @@ from globals import XMLS_PATH
 
 
 class Logger:
-    def __init__(self, name, epoch, iteration):
+    def __init__(self, name, epoch, iteration=0):
         self.name = name
         self.epoch = epoch
         self.iteration = iteration
@@ -25,6 +25,9 @@ class Logger:
                 msg += "{}: {}, ".format(k, v)
 
         return msg
+
+    def increment(self):
+        self.iteration += 1
 
     def update(self, **kwargs):
         for k, v in kwargs.items():
