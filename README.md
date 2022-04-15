@@ -5,10 +5,3 @@ PyTorch model using Kaggle dataset https://www.kaggle.com/datasets/andrewmvd/fac
 ### Data visualization
 
 ![Mask Data](/images/mask_data.png)
-
-### Todo
-
-1. Breakout functionality to separate files
-2. Optimize training
-3. Visualize some more
-4. Refac
