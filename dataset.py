@@ -19,13 +19,12 @@ class MaskDataset(Dataset):
         img_name = FILENAMES[index]
         img_path = path.join(IMGS_PATH, img_name)
 
-        # Test PIL image again when running a batch of 1
         img = cv2.imread(img_path, cv2.IMREAD_COLOR)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB).astype(np.float32)
 
         w, h = img.shape[1], img.shape[0]
-        w_r, h_r = w * 2, h * 2
-
+        w_r, h_r = int(w * 0.75), int(h * 0.75)
+        print(w_r, h_r)
         img = cv2.resize(img, (w_r, h_r), cv2.INTER_AREA)
         img /= 255.0
 
@@ -53,14 +52,14 @@ class MaskDataset(Dataset):
         target["iscrowd"] = iscrowd
 
         # Testing
-        # from matplotlib import pyplot as plt
+        from matplotlib import pyplot as plt
 
-        # img = mark_faces(img, boxes, labels)
-        # fig, ax = plt.subplots(1, 1)
-        # plt.axis("off")
-        # ax.legend(title=img_name)
-        # ax.imshow(img)
-        # fig.savefig("./temp/visualization.png", bbox_inches="tight", pad_inches=0)
+        img = mark_faces(img, boxes, labels)
+        fig, ax = plt.subplots(1, 1)
+        plt.axis("off")
+        ax.legend(title=img_name)
+        ax.imshow(img)
+        fig.savefig("./temp/visualization.png", bbox_inches="tight", pad_inches=0)
 
         # Todo: Transforms
         # https://stackoverflow.com/questions/63068332/does-pytorch-allow-to-apply-given-transformations-to-bounding-box-coordinates-of

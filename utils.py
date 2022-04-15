@@ -96,7 +96,6 @@ def mark_faces(img, bboxes, labels):
             color=box_colors[label],
             thickness=1,
         )
-        # Todo: Print how sure prediction in %
         cv2.putText(
             img,
             classes[label],

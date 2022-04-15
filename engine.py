@@ -9,8 +9,6 @@ from globals import DEVICE
 from model import get_resnet50_model, get_sgd_optimizer, get_dataloader
 from utils import Logger
 
-from pytorch_helpers.engine import evaluate, train_one_epoch
-
 
 def _warmup_lr_scheduler(optimizer, warmup_iters, warmup_factor):
     def f(x):
@@ -35,7 +33,7 @@ def _train_epoch(model, optimizer, dataloader, epoch):
     logger = Logger("Training", epoch)
 
     avg_loss = []
-    itr_time = []
+    time_delta = []
 
     for images, targets in dataloader:
         time_start = time.time()
@@ -51,9 +49,6 @@ def _train_epoch(model, optimizer, dataloader, epoch):
             print(f"Loss is {loss_value}, stopping training")
             sys.exit(1)
 
-        avg_loss.append(loss_value)
-        itr_time.append(time.time() - time_start)
-
         optimizer.zero_grad()
         losses.backward()
         optimizer.step()
@@ -61,13 +56,18 @@ def _train_epoch(model, optimizer, dataloader, epoch):
         if lr_scheduler is not None:
             lr_scheduler.step()
 
-        if logger.iteration % 10 == 0:
-            logger.update(loss=sum(avg_loss) / 10)
-            logger.update(lr=optimizer.param_groups[0]["lr"])
-            logger.update(time=sum(itr_time))
-            print(logger)
+        avg_loss.append(loss_value)
+        time_delta.append(time.time() - time_start)
 
-            avg_loss.clear()
+        if logger.iteration % 10 == 0:
+            if logger.iteration is not 0:
+                logger.update(loss="{:.4f}".format(sum(avg_loss) / 10))
+                logger.update(lr="{:.6f}".format(optimizer.param_groups[0]["lr"]))
+                logger.update(time="{:.4f}s".format(sum(time_delta)))
+                print(logger)
+
+                avg_loss.clear()
+                time_delta.clear()
 
         logger.increment()
 
@@ -99,7 +99,6 @@ def _evaluate_epoch(model, dataloader, epoch):
 
 def train():
     print("[Training]")
-
     print(f"Using device: {DEVICE}")
 
     model = get_resnet50_model()
@@ -109,16 +108,8 @@ def train():
     epochs = 1
     print(f"Number of epochs: {epochs}")
 
-    print("Starting...")
     for epoch in range(epochs):
-        # Todo: Log average
-        #       Is LR step correct?
         _train_epoch(model, optimizer, dataloader, epoch)
         _evaluate_epoch(model, dataloader_test, epoch)
 
-        # PyTorch
-        # train_one_epoch(model, optimizer, dataloader, DEVICE, epoch, print_freq=1)
-        # evaluate(model, dataloader_test, DEVICE)
-
-    torch.save(model.state_dict(), f"./models/model.pth")
     torch.save(model.state_dict(), f"./models/model_{datetime.now()}.pth")
