@@ -36,6 +36,7 @@ def _train_epoch(model, optimizer, dataloader, epoch):
     time_delta = []
 
     for images, targets in dataloader:
+        # Todo: use perf_counter
         time_start = time.time()
 
         images = list(image.to(DEVICE) for image in images)
@@ -81,6 +82,7 @@ def _evaluate_epoch(model, dataloader, epoch):
 
     with torch.no_grad():
         for images, targets in dataloader:
+            # Todo: use perf_counter
             time_start = time.time()
 
             images = list(image.to(DEVICE) for image in images)

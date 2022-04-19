@@ -5,7 +5,6 @@ from os import path
 
 from globals import XMLS_PATH
 
-
 class Logger:
     def __init__(self, name, epoch, iteration=0):
         self.name = name
