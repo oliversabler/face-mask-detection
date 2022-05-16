@@ -4,11 +4,7 @@ from prediction import predict_random_image
 
 if __name__ == "__main__":
     # Training
-    # train()
-
-    # Visualization
-    # Broken atm
-    visualize_random_image()
+    train()
 
     # Prediction
     # Probably broken as well

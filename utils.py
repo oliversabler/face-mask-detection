@@ -98,13 +98,11 @@ def plot_image(img, img_name, bboxes, labels):
         without_mask = Red
         mask_weared_incorrect = Blue
     """
-    fig, ax = plt.subplots(1, 1)
+    _, ax = plt.subplots(1, 1)
 
     img = mark_faces(img, bboxes, labels)
 
-    ax.imshow(img)
     ax.legend(title=img_name)
 
     plt.axis("off")
-
-    fig.savefig("./temp/visualization.png", bbox_inches="tight", pad_inches=0)
+    plt.imshow(img)

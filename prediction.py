@@ -2,12 +2,11 @@ import random
 from os import path
 from PIL import Image
 
-from matplotlib import pyplot as plt
-
 import torch
 import torchvision
 import torchvision.transforms as T
 
+from matplotlib import pyplot as plt
 from globals import FILENAMES, IMGS_PATH, DEVICE
 from model import load_resnet50_model_state
 from utils import get_annotation, mark_faces
@@ -44,8 +43,6 @@ def predict_random_image(model_path, num_preds=1):
         img_path = path.join(IMGS_PATH, img_name)
 
         img = Image.open(img_path).convert("RGB")
-        # img = cv2.imread(img_path, cv2.IMREAD_COLOR)
-        # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
         # Prediction
         p_img, p_boxes, p_labels = _predict_img(model_path, img)
