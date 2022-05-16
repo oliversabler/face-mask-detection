@@ -1,7 +1,6 @@
 import random
-import cv2
-
 from os import path
+from PIL import Image
 
 from matplotlib import pyplot as plt
 
@@ -11,7 +10,7 @@ import torchvision.transforms as T
 
 from globals import FILENAMES, IMGS_PATH, DEVICE
 from model import load_resnet50_model_state
-from utils import get_annotation, plot_image
+from utils import get_annotation, mark_faces
 
 
 def _predict_img(model_path, img, nm_thrs=0.3, score_thrs=0.8):
@@ -44,16 +43,17 @@ def predict_random_image(model_path, num_preds=1):
         img_name = FILENAMES[random.randint(0, len(FILENAMES))]
         img_path = path.join(IMGS_PATH, img_name)
 
-        img = cv2.imread(img_path, cv2.IMREAD_COLOR)
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        img = Image.open(img_path).convert("RGB")
+        # img = cv2.imread(img_path, cv2.IMREAD_COLOR)
+        # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
         # Prediction
         p_img, p_boxes, p_labels = _predict_img(model_path, img)
-        p_output = plot_image(p_img, p_boxes, p_labels)
+        p_output = mark_faces(p_img, p_boxes, p_labels)
 
         # Solution
         t_boxes, t_labels = get_annotation(img_name)
-        t_output = plot_image(img, t_boxes, t_labels)
+        t_output = mark_faces(img, t_boxes, t_labels)
 
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
         ax1.imshow(p_output)

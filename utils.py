@@ -1,10 +1,8 @@
 import xmltodict
-
 from os import path
-from globals import XMLS_PATH
-
+from PIL import ImageDraw
 from matplotlib import pyplot as plt
-import matplotlib.patches as patches
+from globals import XMLS_PATH
 
 
 class Logger:
@@ -36,7 +34,7 @@ class Logger:
 
 
 classes = ["", "with_mask", "without_mask", "mask_weared_incorrect"]
-box_colors = ["", "g", "r", "b"]
+box_colors = ["", "green", "red", "blue"]
 
 
 def get_annotation(filename, width=0, height=0, width_resized=1, height_resized=1):
@@ -79,7 +77,20 @@ def get_annotation(filename, width=0, height=0, width_resized=1, height_resized=
         return bboxes, labels
 
 
-def plot_image(img, img_name, boxes, labels):
+def mark_faces(img, bboxes, labels):
+    for bbox, label in zip(bboxes, labels):
+        xmin, ymin, xmax, ymax = bbox
+        shape = [
+            (xmin, ymin),
+            (xmax, ymax),
+        ]
+        draw = ImageDraw.Draw(img)
+        draw.rectangle(shape, outline=box_colors[label])
+
+    return img
+
+
+def plot_image(img, img_name, bboxes, labels):
     """
     Mark faces by drawing a box around the face.
     The box color is set depending on label value:
@@ -89,22 +100,11 @@ def plot_image(img, img_name, boxes, labels):
     """
     fig, ax = plt.subplots(1, 1)
 
-    ax.imshow(img.permute(1, 2, 0))
+    img = mark_faces(img, bboxes, labels)
 
-    for bbox, label in zip(boxes, labels):
-        xmin, ymin, xmax, ymax = bbox
-        rect = patches.Rectangle(
-            (xmin, ymin),
-            (xmax - xmin),
-            (ymax - ymin),
-            linewidth=1,
-            edgecolor=box_colors[label],
-            facecolor="none",
-        )
-        ax.add_patch(rect)
+    ax.imshow(img)
+    ax.legend(title=img_name)
 
     plt.axis("off")
-    ax.legend(title=img_name)
-    fig.savefig("./temp/visualization.png", bbox_inches="tight", pad_inches=0)
 
-    return ax
+    fig.savefig("./temp/visualization.png", bbox_inches="tight", pad_inches=0)
