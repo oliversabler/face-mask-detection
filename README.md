@@ -8,7 +8,5 @@ PyTorch model using Kaggle dataset https://www.kaggle.com/datasets/andrewmvd/fac
 
 ### Todo
 
-- cv2 to PIL image (prediction and visualization left)
 - Weight and Biases implementation
-- Create notebook for running tests on model
 - Optimize training if possible

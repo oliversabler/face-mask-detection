@@ -5,9 +5,3 @@ from prediction import predict_random_image
 if __name__ == "__main__":
     # Training
     train()
-
-    # Prediction
-    # Probably broken as well
-    # predict_random_image(
-    #    model_path="./models/model_2022-04-15 11 34 02.128306.pth", num_preds=10
-    # )

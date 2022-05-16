@@ -4,7 +4,7 @@ from PIL import Image
 
 import torch
 import torchvision
-import torchvision.transforms as T
+from torchvision import transforms
 
 from matplotlib import pyplot as plt
 from globals import FILENAMES, IMGS_PATH, DEVICE
@@ -13,15 +13,13 @@ from utils import get_annotation, mark_faces
 
 
 def _predict_img(model_path, img, nm_thrs=0.3, score_thrs=0.8):
-    img = T.ToTensor()(img)
+    img = transforms.ToTensor()(img)
 
     model = load_resnet50_model_state(model_path)
     model.eval()
 
     with torch.no_grad():
         predictions = model(img.unsqueeze(0).to(DEVICE))
-
-    img = img.permute(1, 2, 0).numpy()
 
     keep_boxes = torchvision.ops.nms(
         predictions[0]["boxes"].cpu(), predictions[0]["scores"].cpu(), nm_thrs
@@ -33,6 +31,8 @@ def _predict_img(model_path, img, nm_thrs=0.3, score_thrs=0.8):
     labels = predictions[0]["labels"].cpu().numpy()[keep_boxes][score_filter]
 
     print("Prediction labels: {}".format(labels))
+
+    img = transforms.ToPILImage()(img)
 
     return img, boxes, labels
 
@@ -57,4 +57,3 @@ def predict_random_image(model_path, num_preds=1):
         ax1.set_xlabel("Prediction")
         ax2.imshow(t_output)
         ax2.set_xlabel("Truth")
-        fig.savefig(f"./temp/prediction_{i}.png")
