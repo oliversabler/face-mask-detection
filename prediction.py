@@ -11,7 +11,7 @@ import torchvision.transforms as T
 
 from globals import FILENAMES, IMGS_PATH, DEVICE
 from model import load_resnet50_model_state
-from utils import get_annotation, mark_faces
+from utils import get_annotation, plot_image
 
 
 def _predict_img(model_path, img, nm_thrs=0.3, score_thrs=0.8):
@@ -49,11 +49,11 @@ def predict_random_image(model_path, num_preds=1):
 
         # Prediction
         p_img, p_boxes, p_labels = _predict_img(model_path, img)
-        p_output = mark_faces(p_img, p_boxes, p_labels)
+        p_output = plot_image(p_img, p_boxes, p_labels)
 
         # Solution
         t_boxes, t_labels = get_annotation(img_name)
-        t_output = mark_faces(img, t_boxes, t_labels)
+        t_output = plot_image(img, t_boxes, t_labels)
 
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
         ax1.imshow(p_output)

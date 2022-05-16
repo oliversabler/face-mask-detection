@@ -61,7 +61,7 @@ def _train_epoch(model, optimizer, dataloader, epoch):
         time_delta.append(time.time() - time_start)
 
         if logger.iteration % 10 == 0:
-            if logger.iteration is not 0:
+            if logger.iteration != 0:
                 logger.update(loss="{:.4f}".format(sum(avg_loss) / 10))
                 logger.update(lr="{:.6f}".format(optimizer.param_groups[0]["lr"]))
                 logger.update(time="{:.4f}s".format(sum(time_delta)))

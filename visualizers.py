@@ -6,7 +6,7 @@ from os import path
 from matplotlib import pyplot as plt
 import numpy as np
 
-from utils import get_annotation, mark_faces
+from utils import get_annotation, plot_image
 from globals import FILENAMES, IMGS_PATH
 
 
@@ -21,7 +21,7 @@ def _visualize_image(img_name):
     bboxes, labels = get_annotation(img_name)
     img_path = path.join(IMGS_PATH, img_name)
 
-    img = mark_faces(plt.imread(img_path), bboxes, labels)
+    img = plot_image(plt.imread(img_path), bboxes, labels)
 
     fig, ax = plt.subplots(1, 1)
     plt.axis("off")

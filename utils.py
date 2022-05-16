@@ -1,9 +1,11 @@
 import xmltodict
-import cv2
 
 from os import path
-
 from globals import XMLS_PATH
+
+from matplotlib import pyplot as plt
+import matplotlib.patches as patches
+
 
 class Logger:
     def __init__(self, name, epoch, iteration=0):
@@ -34,10 +36,10 @@ class Logger:
 
 
 classes = ["", "with_mask", "without_mask", "mask_weared_incorrect"]
-box_colors = [(), (0, 255, 0), (0, 0, 255), (255, 0, 0)]
+box_colors = ["", "g", "r", "b"]
 
 
-def get_annotation(filename, width=0, height=0, width_resized=0, height_resized=0):
+def get_annotation(filename, width=0, height=0, width_resized=1, height_resized=1):
     """
     Get annotation data in xml file for image based on filename.
         bboxes: face coordinates
@@ -77,7 +79,7 @@ def get_annotation(filename, width=0, height=0, width_resized=0, height_resized=
         return bboxes, labels
 
 
-def mark_faces(img, bboxes, labels):
+def plot_image(img, img_name, boxes, labels):
     """
     Mark faces by drawing a box around the face.
     The box color is set depending on label value:
@@ -85,22 +87,24 @@ def mark_faces(img, bboxes, labels):
         without_mask = Red
         mask_weared_incorrect = Blue
     """
-    # Running cv2.cvtColor() twice seems inefficient, but duplicated boxes and wierd colors if not used.
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    for bbox, label in zip(bboxes, labels):
-        cv2.rectangle(
-            img,
-            (int(bbox[0]), int(bbox[1])),
-            (int(bbox[2]), int(bbox[3])),
-            color=box_colors[label],
-            thickness=1,
+    fig, ax = plt.subplots(1, 1)
+
+    ax.imshow(img.permute(1, 2, 0))
+
+    for bbox, label in zip(boxes, labels):
+        xmin, ymin, xmax, ymax = bbox
+        rect = patches.Rectangle(
+            (xmin, ymin),
+            (xmax - xmin),
+            (ymax - ymin),
+            linewidth=1,
+            edgecolor=box_colors[label],
+            facecolor="none",
         )
-        cv2.putText(
-            img,
-            classes[label],
-            (int(bbox[0]), int(bbox[1] - 2)),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            0.4,
-            color=box_colors[label],
-        )
-    return cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        ax.add_patch(rect)
+
+    plt.axis("off")
+    ax.legend(title=img_name)
+    fig.savefig("./temp/visualization.png", bbox_inches="tight", pad_inches=0)
+
+    return ax
