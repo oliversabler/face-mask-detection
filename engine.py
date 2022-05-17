@@ -36,6 +36,8 @@ def _train_epoch(model, optimizer, dataloader, epoch):
     avg_loss = []
     time_delta = []
 
+    i = 0
+
     for images, targets in dataloader:
         # Todo: use perf_counter
         time_start = time.time()
@@ -47,6 +49,8 @@ def _train_epoch(model, optimizer, dataloader, epoch):
         losses = sum(loss for loss in loss_dict.values())
         loss_value = losses.item()
 
+        wandb.log({"loss": loss_value})
+
         if not math.isfinite(loss_value):
             print(f"Loss is {loss_value}, stopping training")
             sys.exit(1)
@@ -54,11 +58,6 @@ def _train_epoch(model, optimizer, dataloader, epoch):
         optimizer.zero_grad()
         losses.backward()
         optimizer.step()
-
-        if lr_scheduler is not None:
-            lr_scheduler.step()
-
-        wandb.log({"loss": loss_value})
 
         avg_loss.append(loss_value)
         time_delta.append(time.time() - time_start)
@@ -75,12 +74,17 @@ def _train_epoch(model, optimizer, dataloader, epoch):
 
         logger.increment()
 
+        if i % 10 == 0:
+            if lr_scheduler is not None:
+                lr_scheduler.step()
+
+        i += 1
+
     lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=3, gamma=0.1)
 
 
 def _evaluate_epoch(model, dataloader, epoch):
     model.eval()
-
     logger = Logger("Testing", epoch)
 
     with torch.no_grad():
@@ -108,9 +112,11 @@ def train():
 
     model = get_resnet50_model()
     optimizer = get_sgd_optimizer(model)
-    dataloader, dataloader_test = get_dataloader(take_one=False)
+    dataloader, dataloader_test = get_dataloader(
+        train_batch_size=1, test_batch_size=1, take_one=False
+    )
 
-    epochs = 1
+    epochs = 10
     print(f"Number of epochs: {epochs}")
 
     wandb.init()

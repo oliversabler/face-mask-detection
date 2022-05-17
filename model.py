@@ -31,13 +31,27 @@ def get_sgd_optimizer(model):
     return torch.optim.SGD(params, lr=0.005, momentum=0.9, weight_decay=0.0005)
 
 
+def get_adam_optimizer(model):
+    params = [p for p in model.parameters() if p.requires_grad]
+
+    return torch.optim.Adam(params, lr=0.0001, weight_decay=0.0005)
+
+
 def _collate_fn(batch):
     return tuple(zip(*batch))
 
 
+def _get_transform(train=False):
+    trans = []
+    trans.append(T.ToTensor())
+    if train:
+        trans.append(T.RandomGrayscale(p=0.5))
+    return T.Compose(trans)
+
+
 def get_dataloader(train_batch_size=1, test_batch_size=1, take_one=False):
-    mask_dataset = MaskDataset()
-    mask_dataset_test = MaskDataset()
+    mask_dataset = MaskDataset(_get_transform(train=True))
+    mask_dataset_test = MaskDataset(_get_transform())
 
     indices = torch.randperm(len(mask_dataset)).tolist()
 

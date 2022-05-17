@@ -3,25 +3,22 @@ from PIL import Image
 
 import torch
 from torch.utils.data import Dataset
-from torchvision import transforms
 
 from globals import FILENAMES, IMGS_PATH
 from utils import get_annotation
 
 
 class MaskDataset(Dataset):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, transforms):
+        self.transforms = transforms
 
     def __getitem__(self, index):
         img_name = FILENAMES[index]
         img_path = path.join(IMGS_PATH, img_name)
 
-        trans = transforms.Compose([transforms.ToTensor()])
         img = Image.open(img_path).convert("RGB")
-        img = trans(img)
 
-        w, h = img.shape[1], img.shape[0]
+        w, h = img.size
         boxes, labels = get_annotation(img_name, w, h)
 
         boxes = torch.as_tensor(boxes, dtype=torch.float32)
@@ -44,6 +41,9 @@ class MaskDataset(Dataset):
         target["labels"] = labels
         target["area"] = area
         target["iscrowd"] = iscrowd
+
+        if self.transforms is not None:
+            img = self.transforms(img)
 
         return img, target
 
