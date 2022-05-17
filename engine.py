@@ -4,6 +4,7 @@ import time
 
 from datetime import datetime
 
+import wandb
 import torch
 from globals import DEVICE
 from model import get_resnet50_model, get_sgd_optimizer, get_dataloader
@@ -57,6 +58,8 @@ def _train_epoch(model, optimizer, dataloader, epoch):
         if lr_scheduler is not None:
             lr_scheduler.step()
 
+        wandb.log({"loss": loss_value})
+
         avg_loss.append(loss_value)
         time_delta.append(time.time() - time_start)
 
@@ -105,13 +108,17 @@ def train():
 
     model = get_resnet50_model()
     optimizer = get_sgd_optimizer(model)
-    dataloader, dataloader_test = get_dataloader(take_one=True)
+    dataloader, dataloader_test = get_dataloader(take_one=False)
 
     epochs = 1
     print(f"Number of epochs: {epochs}")
 
+    wandb.init()
+
     for epoch in range(epochs):
         _train_epoch(model, optimizer, dataloader, epoch)
         _evaluate_epoch(model, dataloader_test, epoch)
+
+    wandb.finish()
 
     torch.save(model.state_dict(), f"./models/model_{datetime.now()}.pth")
