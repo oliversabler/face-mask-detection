@@ -9,7 +9,7 @@ from globals import DEVICE
 
 
 def get_resnet50_model():
-    model = fasterrcnn_resnet50_fpn(pretrained=True)
+    model = fasterrcnn_resnet50_fpn(weights='FasterRCNN_ResNet50_FPN_Weights.DEFAULT')
 
     num_classes = 4
     in_features = model.roi_heads.box_predictor.cls_score.in_features
