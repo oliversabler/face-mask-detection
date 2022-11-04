@@ -1,4 +1,5 @@
 import torch
+import torchvision.transforms as T
 from torch.utils.data import DataLoader, Subset
 from torchvision.models.detection import fasterrcnn_resnet50_fpn
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
