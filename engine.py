@@ -4,7 +4,6 @@ import time
 
 from datetime import datetime
 
-import wandb
 import torch
 from globals import DEVICE
 from model import get_resnet50_model, get_sgd_optimizer, get_dataloader
@@ -48,8 +47,6 @@ def _train_epoch(model, optimizer, dataloader, epoch):
         loss_dict = model(images, targets)
         losses = sum(loss for loss in loss_dict.values())
         loss_value = losses.item()
-
-        wandb.log({"loss": loss_value})
 
         if not math.isfinite(loss_value):
             print(f"Loss is {loss_value}, stopping training")
@@ -119,12 +116,8 @@ def train():
     epochs = 10
     print(f"Number of epochs: {epochs}")
 
-    wandb.init()
-
     for epoch in range(epochs):
         _train_epoch(model, optimizer, dataloader, epoch)
         _evaluate_epoch(model, dataloader_test, epoch)
-
-    wandb.finish()
 
     torch.save(model.state_dict(), f"./models/model_{datetime.now()}.pth")
