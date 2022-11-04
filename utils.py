@@ -4,9 +4,8 @@ from PIL import ImageDraw
 from matplotlib import pyplot as plt
 from globals import XMLS_PATH
 
-classes = ["", "with_mask", "without_mask", "mask_weared_incorrect"]
-box_colors = ["", "green", "red", "blue"]
-
+classes = ['', 'with_mask', 'without_mask', 'mask_weared_incorrect']
+box_colors = ['', 'green', 'red', 'blue']
 
 def get_annotation(filename, width=0, height=0, width_resized=1, height_resized=1):
     """
@@ -17,21 +16,21 @@ def get_annotation(filename, width=0, height=0, width_resized=1, height_resized=
     bboxes = []
     labels = []
 
-    xml_path = path.join(XMLS_PATH, filename[:-3] + "xml")
+    xml_path = path.join(XMLS_PATH, filename[:-3] + 'xml')
 
     with open(xml_path) as file:
         xml = xmltodict.parse(file.read())
-        root = xml["annotation"]
+        root = xml['annotation']
 
-        obj = root["object"]
+        obj = root['object']
         if type(obj) != list:
             obj = [obj]
 
         for obj in obj:
-            xmin, ymin, xmax, ymax = list(map(int, obj["bndbox"].values()))
+            xmin, ymin, xmax, ymax = list(map(int, obj['bndbox'].values()))
             bboxes.append([xmin, ymin, xmax, ymax])
 
-            label = obj["name"]
+            label = obj['name']
             labels.append(classes.index(label))
 
         if width != 0 and height != 0:
@@ -47,7 +46,6 @@ def get_annotation(filename, width=0, height=0, width_resized=1, height_resized=
 
         return bboxes, labels
 
-
 def mark_faces(img, bboxes, labels):
     for bbox, label in zip(bboxes, labels):
         xmin, ymin, xmax, ymax = bbox
@@ -59,7 +57,6 @@ def mark_faces(img, bboxes, labels):
         draw.rectangle(shape, outline=box_colors[label])
 
     return img
-
 
 def plot_image(img, img_name, bboxes, labels):
     """
@@ -75,5 +72,5 @@ def plot_image(img, img_name, bboxes, labels):
 
     ax.legend(title=img_name)
 
-    plt.axis("off")
+    plt.axis('off')
     plt.imshow(img)

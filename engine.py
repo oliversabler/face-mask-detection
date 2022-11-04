@@ -26,7 +26,6 @@ def _warmup_lr_scheduler(optimizer, warmup_iters, warmup_factor):
 
     return torch.optim.lr_scheduler.LambdaLR(optimizer, f)
 
-
 def _train_epoch(model, optimizer, dataloader, epoch):
     """
     Trains the epoch
@@ -40,7 +39,7 @@ def _train_epoch(model, optimizer, dataloader, epoch):
 
         lr_scheduler = _warmup_lr_scheduler(optimizer, warmup_iters, warmup_factor)
 
-    logger = EpochLogger("Training", epoch)
+    logger = EpochLogger('Training', epoch)
 
     avg_loss = []
     time_delta = []
@@ -59,7 +58,7 @@ def _train_epoch(model, optimizer, dataloader, epoch):
         loss_value = losses.item()
 
         if not math.isfinite(loss_value):
-            print(f"Loss is {loss_value}, stopping training")
+            print(f'Loss is {loss_value}, stopping training')
             sys.exit(1)
 
         optimizer.zero_grad()
@@ -86,13 +85,12 @@ def _train_epoch(model, optimizer, dataloader, epoch):
 
     lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=3, gamma=0.1)
 
-
 def _evaluate_epoch(model, dataloader, epoch):
     """
     Evaluates the epoch
     """
     model.eval()
-    logger = EpochLogger("Testing", epoch)
+    logger = EpochLogger('Testing', epoch)
 
     with torch.no_grad():
         for images, targets in dataloader:
@@ -105,20 +103,19 @@ def _evaluate_epoch(model, dataloader, epoch):
             predictions = model(images)
 
             if logger.iteration % 10 == 0:
-                logger.update(prediction=predictions[0]["labels"])
-                logger.update(target=targets[0]["labels"])
+                logger.update(prediction=predictions[0]['labels'])
+                logger.update(target=targets[0]['labels'])
                 logger.update(time=time.time() - time_start)
                 print(logger)
 
             logger.increment()
 
-
 def train():
     """
     Run training
     """
-    print("[Training]")
-    print(f"Using device: {DEVICE}")
+    print('[Training]')
+    print(f'Using device: {DEVICE}')
 
     model = get_resnet50_model()
     optimizer = get_sgd_optimizer(model)
@@ -127,10 +124,10 @@ def train():
     )
 
     epochs = 10
-    print(f"Number of epochs: {epochs}")
+    print(f'Number of epochs: {epochs}')
 
     for epoch in range(epochs):
         _train_epoch(model, optimizer, dataloader, epoch)
         _evaluate_epoch(model, dataloader_test, epoch)
 
-    torch.save(model.state_dict(), f"./models/model_{datetime.now()}.pth")
+    torch.save(model.state_dict(), f'./models/model_{datetime.now()}.pth')

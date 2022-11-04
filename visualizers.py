@@ -4,13 +4,12 @@ from PIL import Image
 from utils import get_annotation, plot_image
 from globals import FILENAMES, IMGS_PATH
 
-
 def _visualize_image(img_name):
     img_path = path.join(IMGS_PATH, img_name)
 
     bboxes, labels = get_annotation(img_name)
 
-    img = Image.open(img_path).convert("RGB")
+    img = Image.open(img_path).convert('RGB')
 
     plot_image(img, img_name, bboxes, labels)
 

@@ -10,7 +10,6 @@ from torch.utils.data import Dataset
 from globals import FILENAMES, IMGS_PATH
 from utils import get_annotation
 
-
 class MaskDataset(Dataset):
     """
     - image_id: Image identifier.
@@ -26,7 +25,7 @@ class MaskDataset(Dataset):
         img_name = FILENAMES[index]
         img_path = path.join(IMGS_PATH, img_name)
 
-        img = Image.open(img_path).convert("RGB")
+        img = Image.open(img_path).convert('RGB')
 
         width, height = img.size
         boxes, labels = get_annotation(img_name, width, height)
@@ -39,11 +38,11 @@ class MaskDataset(Dataset):
         iscrowd = torch.zeros((len(boxes),), dtype=torch.int64)
 
         target = {}
-        target["image_id"] = torch.tensor([index])
-        target["boxes"] = boxes
-        target["labels"] = labels
-        target["area"] = area
-        target["iscrowd"] = iscrowd
+        target['image_id'] = torch.tensor([index])
+        target['boxes'] = boxes
+        target['labels'] = labels
+        target['area'] = area
+        target['iscrowd'] = iscrowd
 
         if self.transforms is not None:
             img = self.transforms(img)

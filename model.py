@@ -10,7 +10,6 @@ from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 from dataset import MaskDataset
 from globals import DEVICE
 
-
 def get_resnet50_model():
     model = fasterrcnn_resnet50_fpn(weights='FasterRCNN_ResNet50_FPN_Weights.DEFAULT')
 
@@ -22,28 +21,23 @@ def get_resnet50_model():
 
     return model
 
-
 def load_resnet50_model_state(path):
     model = get_resnet50_model()
     model.load_state_dict(torch.load(path, map_location=torch.device(DEVICE)))
     return model
-
 
 def get_sgd_optimizer(model):
     params = [p for p in model.parameters() if p.requires_grad]
 
     return torch.optim.SGD(params, lr=0.005, momentum=0.9, weight_decay=0.0005)
 
-
 def get_adam_optimizer(model):
     params = [p for p in model.parameters() if p.requires_grad]
 
     return torch.optim.Adam(params, lr=0.0001, weight_decay=0.0005)
 
-
 def _collate_fn(batch):
     return tuple(zip(*batch))
-
 
 def _get_transform(train=False):
     trans = []
@@ -51,7 +45,6 @@ def _get_transform(train=False):
     if train:
         trans.append(T.RandomGrayscale(p=0.5))
     return T.Compose(trans)
-
 
 def get_dataloader(train_batch_size=1, test_batch_size=1, take_one=False):
     mask_dataset = MaskDataset(_get_transform(train=True))
