@@ -9,6 +9,10 @@ from globals import DEVICE
 from model import get_resnet50_model, get_sgd_optimizer, get_dataloader
 from utils import Logger
 
+import ssl
+ssl._create_default_https_context = ssl._create_unverified_context
+
+
 
 def _warmup_lr_scheduler(optimizer, warmup_iters, warmup_factor):
     def f(x):
