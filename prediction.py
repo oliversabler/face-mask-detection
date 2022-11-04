@@ -1,3 +1,6 @@
+"""
+Handles prediction
+"""
 import random
 from os import path
 from PIL import Image

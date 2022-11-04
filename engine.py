@@ -1,20 +1,23 @@
+"""
+Handles the training
+"""
 import math
 import sys
 import time
+import ssl
+ssl._create_default_https_context = ssl._create_unverified_context
 
 from datetime import datetime
 
 import torch
 from globals import DEVICE
 from model import get_resnet50_model, get_sgd_optimizer, get_dataloader
-from utils import Logger
-
-import ssl
-ssl._create_default_https_context = ssl._create_unverified_context
-
-
+from logger import EpochLogger
 
 def _warmup_lr_scheduler(optimizer, warmup_iters, warmup_factor):
+    """
+    Warmup learning rate scheduler
+    """
     def f(x):
         if x >= warmup_iters:
             return 1
@@ -25,6 +28,9 @@ def _warmup_lr_scheduler(optimizer, warmup_iters, warmup_factor):
 
 
 def _train_epoch(model, optimizer, dataloader, epoch):
+    """
+    Trains the epoch
+    """
     model.train()
 
     lr_scheduler = None
@@ -34,7 +40,7 @@ def _train_epoch(model, optimizer, dataloader, epoch):
 
         lr_scheduler = _warmup_lr_scheduler(optimizer, warmup_iters, warmup_factor)
 
-    logger = Logger("Training", epoch)
+    logger = EpochLogger("Training", epoch)
 
     avg_loss = []
     time_delta = []
@@ -63,17 +69,14 @@ def _train_epoch(model, optimizer, dataloader, epoch):
         avg_loss.append(loss_value)
         time_delta.append(time.time() - time_start)
 
-        if logger.iteration % 10 == 0:
-            if logger.iteration != 0:
-                logger.update(loss="{:.4f}".format(sum(avg_loss) / 10))
-                logger.update(lr="{:.6f}".format(optimizer.param_groups[0]["lr"]))
-                logger.update(time="{:.4f}s".format(sum(time_delta)))
-                print(logger)
-
-                avg_loss.clear()
-                time_delta.clear()
-
+        logger.update(loss=f'{(sum(avg_loss) / 10):.4f}')
+        logger.update(lr=f'{(optimizer.param_groups[0]["lr"]):.6f}')
+        logger.update(time=f'{(sum(time_delta)):.4f}')
+        print(logger)
         logger.increment()
+
+        avg_loss.clear()
+        time_delta.clear()
 
         if i % 10 == 0:
             if lr_scheduler is not None:
@@ -85,8 +88,11 @@ def _train_epoch(model, optimizer, dataloader, epoch):
 
 
 def _evaluate_epoch(model, dataloader, epoch):
+    """
+    Evaluates the epoch
+    """
     model.eval()
-    logger = Logger("Testing", epoch)
+    logger = EpochLogger("Testing", epoch)
 
     with torch.no_grad():
         for images, targets in dataloader:
@@ -108,6 +114,9 @@ def _evaluate_epoch(model, dataloader, epoch):
 
 
 def train():
+    """
+    Run training
+    """
     print("[Training]")
     print(f"Using device: {DEVICE}")
 
