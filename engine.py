@@ -67,17 +67,15 @@ def _train_epoch(model, optimizer, dataloader, epoch):
         logger.update(loss=f'{(sum(avg_loss) / 10):.4f}')
         logger.update(lr=f'{(optimizer.param_groups[0]["lr"]):.6f}')
         logger.update(time=f'{(sum(time_delta)):.4f}')
-        print(logger)
-        logger.increment()
+        logger.log()
 
         avg_loss.clear()
         time_delta.clear()
 
-        if i % 10 == 0:
-            if lr_scheduler is not None:
-                lr_scheduler.step()
-
         i += 1
+
+        if i % 10 == 0:
+            lr_scheduler.step()
 
     lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=3, gamma=0.1)
 
@@ -97,13 +95,10 @@ def _evaluate_epoch(model, dataloader, epoch):
 
             predictions = model(images)
 
-            if logger.iteration % 10 == 0:
-                logger.update(prediction=predictions[0]['labels'])
-                logger.update(target=targets[0]['labels'])
-                logger.update(time=perf_counter() - time_start)
-                print(logger)
-
-            logger.increment()
+            logger.update(prediction=predictions[0]['labels'])
+            logger.update(target=targets[0]['labels'])
+            logger.update(time=perf_counter() - time_start)
+            logger.log()
 
 def train():
     """

@@ -22,11 +22,18 @@ class EpochLogger:
 
         return msg
 
-    def increment(self):
+    def _increment(self):
         """
         Increment self
         """
         self.iteration += 1
+
+    def log(self):
+        """
+        Log self
+        """
+        print(self)
+        self._increment()
 
     def update(self, **kwargs):
         """
