@@ -8,5 +8,8 @@ PyTorch model using Kaggle dataset https://www.kaggle.com/datasets/andrewmvd/fac
 
 ### Todo
 
-- Weight and Biases implementation
-- Optimize training if possible
+* Remove notebook and replace with script
+* Optimize training if possible
+* Remove redundant logic - minimalistic approach
+    * utils.py
+    * globals.py

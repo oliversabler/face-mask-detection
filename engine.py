@@ -7,6 +7,7 @@ from time import perf_counter
 from datetime import datetime
 
 import torch
+
 from globals import DEVICE
 from model import get_resnet50_model, get_sgd_optimizer, get_dataloader
 from logger import EpochLogger
@@ -36,7 +37,7 @@ def _train_epoch(model, optimizer, dataloader, epoch):
 
         lr_scheduler = _warmup_lr_scheduler(optimizer, warmup_iters, warmup_factor)
 
-    logger = EpochLogger('Training', epoch)
+    logger = EpochLogger('Training', epoch, 0, len(dataloader))
 
     avg_loss = []
     time_delta = []
@@ -46,10 +47,10 @@ def _train_epoch(model, optimizer, dataloader, epoch):
     for images, targets in dataloader:
         time_start = perf_counter()
 
-        images = list(image.to(DEVICE) for image in images)
+        images = list(i.to(DEVICE) for i in images)
         targets = [{k: v.to(DEVICE) for k, v in t.items()} for t in targets]
 
-        loss_dict = model(images, targets)
+        loss_dict = model(images, targets) # ~1s op
         losses = sum(loss for loss in loss_dict.values())
         loss_value = losses.item()
 
@@ -58,7 +59,7 @@ def _train_epoch(model, optimizer, dataloader, epoch):
             sys.exit(1)
 
         optimizer.zero_grad()
-        losses.backward()
+        losses.backward() # ~1.5s op
         optimizer.step()
 
         avg_loss.append(loss_value)
@@ -84,7 +85,7 @@ def _evaluate_epoch(model, dataloader, epoch):
     Evaluates the epoch
     """
     model.eval()
-    logger = EpochLogger('Testing', epoch)
+    logger = EpochLogger('Testing', epoch, 0, len(dataloader))
 
     with torch.no_grad():
         for images, targets in dataloader:
@@ -113,7 +114,7 @@ def train():
         train_batch_size=1, test_batch_size=1, take_one=False
     )
 
-    epochs = 10
+    epochs = 1
     print(f'Number of epochs: {epochs}')
 
     for epoch in range(epochs):

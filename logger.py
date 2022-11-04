@@ -5,14 +5,17 @@ class EpochLogger:
     """
     Logger
     """
-    def __init__(self, name, epoch, iteration=0):
+    def __init__(self, name, epoch, iteration, iteration_len):
         self.name = name
-        self.epoch = epoch
-        self.iteration = iteration
+        self.epoch = epoch + 1
+        self.iteration = iteration + 1
+        self.iteration_len = iteration_len
         self.metrics = {}
 
     def __str__(self):
-        msg = f'{self.name} | Epoch [{self.epoch}] Iteration [{self.iteration}]'
+        msg = f'{self.name} | \
+Epoch [{self.epoch}] \
+Iteration [{self.iteration}/{self.iteration_len}]'
 
         for key, value in sorted(self.metrics.items()):
             if isinstance(value, float):
