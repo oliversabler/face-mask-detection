@@ -3,10 +3,7 @@ Handles the training
 """
 import math
 import sys
-import time
-import ssl
-ssl._create_default_https_context = ssl._create_unverified_context
-
+from time import perf_counter
 from datetime import datetime
 
 import torch
@@ -47,8 +44,7 @@ def _train_epoch(model, optimizer, dataloader, epoch):
     i = 0
 
     for images, targets in dataloader:
-        # Todo: use perf_counter
-        time_start = time.time()
+        time_start = perf_counter()
 
         images = list(image.to(DEVICE) for image in images)
         targets = [{k: v.to(DEVICE) for k, v in t.items()} for t in targets]
@@ -66,7 +62,7 @@ def _train_epoch(model, optimizer, dataloader, epoch):
         optimizer.step()
 
         avg_loss.append(loss_value)
-        time_delta.append(time.time() - time_start)
+        time_delta.append(perf_counter() - time_start)
 
         logger.update(loss=f'{(sum(avg_loss) / 10):.4f}')
         logger.update(lr=f'{(optimizer.param_groups[0]["lr"]):.6f}')
@@ -94,8 +90,7 @@ def _evaluate_epoch(model, dataloader, epoch):
 
     with torch.no_grad():
         for images, targets in dataloader:
-            # Todo: use perf_counter
-            time_start = time.time()
+            time_start = perf_counter()
 
             images = list(image.to(DEVICE) for image in images)
             targets = [{k: v.to(DEVICE) for k, v in t.items()} for t in targets]
@@ -105,7 +100,7 @@ def _evaluate_epoch(model, dataloader, epoch):
             if logger.iteration % 10 == 0:
                 logger.update(prediction=predictions[0]['labels'])
                 logger.update(target=targets[0]['labels'])
-                logger.update(time=time.time() - time_start)
+                logger.update(time=perf_counter() - time_start)
                 print(logger)
 
             logger.increment()

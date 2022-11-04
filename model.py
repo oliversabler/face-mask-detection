@@ -11,6 +11,9 @@ from dataset import MaskDataset
 from globals import DEVICE
 
 def get_resnet50_model():
+    import ssl
+    ssl._create_default_https_context = ssl._create_unverified_context
+
     model = fasterrcnn_resnet50_fpn(weights='FasterRCNN_ResNet50_FPN_Weights.DEFAULT')
 
     num_classes = 4
@@ -30,11 +33,6 @@ def get_sgd_optimizer(model):
     params = [p for p in model.parameters() if p.requires_grad]
 
     return torch.optim.SGD(params, lr=0.005, momentum=0.9, weight_decay=0.0005)
-
-def get_adam_optimizer(model):
-    params = [p for p in model.parameters() if p.requires_grad]
-
-    return torch.optim.Adam(params, lr=0.0001, weight_decay=0.0005)
 
 def _collate_fn(batch):
     return tuple(zip(*batch))
