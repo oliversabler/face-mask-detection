@@ -7,7 +7,9 @@ from time import perf_counter
 from datetime import datetime
 
 import torch
+import torchvision.transforms as T
 
+from dataset import MaskDataset
 from model import get_resnet50_model, get_sgd_optimizer, get_dataloader
 from logger import EpochLogger
 
@@ -101,23 +103,46 @@ def _evaluate_epoch(model, dataloader, epoch):
             logger.update(time=perf_counter() - time_start)
             logger.log()
 
-def train():
+def _get_transform(is_training=False):
+    trans = []
+    trans.append(T.ToTensor())
+    if is_training:
+        trans.append(T.RandomGrayscale(p=0.5))
+    return T.Compose(trans)
+
+def train(filenames):
     """
     Run training
     """
     print('[Training]')
 
+    # Fetch model
     model = get_resnet50_model()
+
+    # Fetch optimizer
     optimizer = get_sgd_optimizer(model)
-    dataloader, dataloader_test = get_dataloader(
-        train_batch_size=1, test_batch_size=1, take_one=False
+
+    dataset = MaskDataset(filenames, _get_transform(is_training=True))
+    dataset_eval = MaskDataset(filenames, _get_transform())
+
+    # Fetch dataloaders
+    take_one = True
+    dataloader = get_dataloader(
+        dataset, batch_size=1, take_one=take_one
     )
 
+    dataloader_eval = get_dataloader(
+        dataset_eval, batch_size=1, take_one=take_one
+    )
+
+    # Set number of epochs to run
     epochs = 1
     print(f'Number of epochs: {epochs}')
 
+    # Run training en evaluation
     for epoch in range(epochs):
         _train_epoch(model, optimizer, dataloader, epoch)
-        _evaluate_epoch(model, dataloader_test, epoch)
+        _evaluate_epoch(model, dataloader_eval, epoch)
 
+    # Save model
     torch.save(model.state_dict(), f'./models/model_{datetime.now()}.pth')

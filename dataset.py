@@ -7,7 +7,7 @@ from PIL import Image
 import torch
 from torch.utils.data import Dataset
 
-from globals import FILENAMES, IMGS_PATH
+from globals import IMGS_PATH
 from utils import get_annotation
 
 class MaskDataset(Dataset):
@@ -18,11 +18,12 @@ class MaskDataset(Dataset):
     - area: The area of the bounding box.
     - iscrowd: Instances with iscrowd=True will be ignored during evaluation.
     """
-    def __init__(self, transforms):
+    def __init__(self, filenames, transforms):
+        self.filenames = filenames
         self.transforms = transforms
 
     def __getitem__(self, index):
-        img_name = FILENAMES[index]
+        img_name = self.filenames[index]
         img_path = path.join(IMGS_PATH, img_name)
         img = Image.open(img_path).convert('RGB')
         width, height = img.size
@@ -47,4 +48,4 @@ class MaskDataset(Dataset):
         return img, target
 
     def __len__(self):
-        return len(FILENAMES)
+        return len(self.filenames)
