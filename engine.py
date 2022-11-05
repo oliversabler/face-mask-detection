@@ -8,7 +8,6 @@ from datetime import datetime
 
 import torch
 
-from globals import DEVICE
 from model import get_resnet50_model, get_sgd_optimizer, get_dataloader
 from logger import EpochLogger
 
@@ -47,8 +46,8 @@ def _train_epoch(model, optimizer, dataloader, epoch):
     for images, targets in dataloader:
         time_start = perf_counter()
 
-        images = list(i.to(DEVICE) for i in images)
-        targets = [{k: v.to(DEVICE) for k, v in t.items()} for t in targets]
+        images = list(i for i in images)
+        targets = [{k: v for k, v in t.items()} for t in targets]
 
         loss_dict = model(images, targets) # ~1s op
 
@@ -92,8 +91,8 @@ def _evaluate_epoch(model, dataloader, epoch):
         for images, targets in dataloader:
             time_start = perf_counter()
 
-            images = list(image.to(DEVICE) for image in images)
-            targets = [{k: v.to(DEVICE) for k, v in t.items()} for t in targets]
+            images = list(image for image in images)
+            targets = [{k: v for k, v in t.items()} for t in targets]
 
             predictions = model(images)
 
@@ -107,7 +106,6 @@ def train():
     Run training
     """
     print('[Training]')
-    print(f'Using device: {DEVICE}')
 
     model = get_resnet50_model()
     optimizer = get_sgd_optimizer(model)

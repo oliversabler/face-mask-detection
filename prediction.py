@@ -10,7 +10,7 @@ import torchvision
 from torchvision import transforms
 
 from matplotlib import pyplot as plt
-from globals import FILENAMES, IMGS_PATH, DEVICE
+from globals import FILENAMES, IMGS_PATH
 from model import load_resnet50_model_state
 from utils import get_annotation, mark_faces
 
@@ -21,7 +21,7 @@ def _predict_img(model_path, img, nm_thrs=0.3, score_thrs=0.8):
     model.eval()
 
     with torch.no_grad():
-        predictions = model(img.unsqueeze(0).to(DEVICE))
+        predictions = model(img.unsqueeze(0))
 
     keep_boxes = torchvision.ops.nms(
         predictions[0]['boxes'].cpu(), predictions[0]['scores'].cpu(), nm_thrs

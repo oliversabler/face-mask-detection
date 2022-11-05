@@ -8,7 +8,6 @@ from torchvision.models.detection import fasterrcnn_resnet50_fpn
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 
 from dataset import MaskDataset
-from globals import DEVICE
 
 def get_resnet50_model():
     import ssl
@@ -20,13 +19,13 @@ def get_resnet50_model():
     in_features = resnet.roi_heads.box_predictor.cls_score.in_features
     resnet.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
 
-    resnet.eval().to(DEVICE)
+    resnet.eval()
 
     return resnet
 
 def load_resnet50_model_state(path):
     model = get_resnet50_model()
-    model.load_state_dict(torch.load(path, map_location=torch.device(DEVICE)))
+    model.load_state_dict(torch.load(path))
     return model
 
 def get_sgd_optimizer(model):
