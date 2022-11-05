@@ -44,8 +44,9 @@ def _train_epoch(model, optimizer, dataloader, epoch):
     time_delta = []
 
     i = 0
-
+    print(dataloader)
     for images, targets in dataloader:
+        print(images, targets)
         time_start = perf_counter()
 
         images = list(i for i in images)
@@ -110,7 +111,7 @@ def _get_transform(is_training=False):
         trans.append(T.RandomGrayscale(p=0.5))
     return T.Compose(trans)
 
-def train(filenames):
+def train(filenames, imgs_path, xmls_path):
     """
     Run training
     """
@@ -122,11 +123,12 @@ def train(filenames):
     # Fetch optimizer
     optimizer = get_sgd_optimizer(model)
 
-    dataset = MaskDataset(filenames, _get_transform(is_training=True))
-    dataset_eval = MaskDataset(filenames, _get_transform())
-
-    # Fetch dataloaders
+    # Create datasets
+    dataset = MaskDataset(filenames, imgs_path, xmls_path, _get_transform(is_training=True))
+    dataset_eval = MaskDataset(filenames, imgs_path, xmls_path, _get_transform())
+    
     take_one = True
+
     dataloader = get_dataloader(
         dataset, batch_size=1, take_one=take_one
     )

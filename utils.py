@@ -4,12 +4,10 @@ from PIL import ImageDraw
 
 from matplotlib import pyplot as plt
 
-from globals import XMLS_PATH
-
 classes = ['', 'with_mask', 'without_mask', 'mask_weared_incorrect']
 box_colors = ['', 'green', 'red', 'blue']
 
-def get_annotation(filename, width=0, height=0, width_resized=1, height_resized=1):
+def get_annotation(filename, xmls_path, width=0, height=0, width_resized=1, height_resized=1):
     """
     Get annotation data in xml file for image based on filename.
         bboxes: face coordinates
@@ -18,7 +16,7 @@ def get_annotation(filename, width=0, height=0, width_resized=1, height_resized=
     bboxes = []
     labels = []
 
-    xml_path = path.join(XMLS_PATH, filename[:-3] + 'xml')
+    xml_path = path.join(xmls_path, filename[:-3] + 'xml')
 
     with open(xml_path) as file:
         xml = xmltodict.parse(file.read())

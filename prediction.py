@@ -10,7 +10,6 @@ import torchvision
 from torchvision import transforms
 
 from matplotlib import pyplot as plt
-from globals import FILENAMES, IMGS_PATH
 from model import load_resnet50_model_state
 from utils import get_annotation, mark_faces
 
@@ -38,10 +37,10 @@ def _predict_img(model_path, img, nm_thrs=0.3, score_thrs=0.8):
 
     return img, boxes, labels
 
-def predict_random_image(model_path, num_preds=1):
+def predict_random_image(filenames, imgs_path, xmls_path, model_path, num_preds=1):
     for i in range(num_preds):
-        img_name = FILENAMES[random.randint(0, len(FILENAMES))]
-        img_path = path.join(IMGS_PATH, img_name)
+        img_name = filenames[random.randint(0, len(filenames))]
+        img_path = path.join(imgs_path, img_name)
 
         img = Image.open(img_path).convert('RGB')
 
@@ -50,7 +49,7 @@ def predict_random_image(model_path, num_preds=1):
         p_output = mark_faces(p_img, p_boxes, p_labels)
 
         # Solution
-        t_boxes, t_labels = get_annotation(img_name)
+        t_boxes, t_labels = get_annotation(img_name, xmls_path)
         t_output = mark_faces(img, t_boxes, t_labels)
 
         _, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
