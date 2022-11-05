@@ -1,7 +1,9 @@
 import xmltodict
 from os import path
 from PIL import ImageDraw
+
 from matplotlib import pyplot as plt
+
 from globals import XMLS_PATH
 
 classes = ['', 'with_mask', 'without_mask', 'mask_weared_incorrect']
@@ -41,7 +43,6 @@ def get_annotation(filename, width=0, height=0, width_resized=1, height_resized=
                 ymin_corr = (box[1] / height) * height_resized
                 ymax_corr = (box[3] / height) * height_resized
                 boxes_corr.append([xmin_corr, ymin_corr, xmax_corr, ymax_corr])
-
             return boxes_corr, labels
 
         return bboxes, labels

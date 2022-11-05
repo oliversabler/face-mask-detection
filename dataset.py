@@ -24,15 +24,12 @@ class MaskDataset(Dataset):
     def __getitem__(self, index):
         img_name = FILENAMES[index]
         img_path = path.join(IMGS_PATH, img_name)
-
         img = Image.open(img_path).convert('RGB')
-
         width, height = img.size
         boxes, labels = get_annotation(img_name, width, height)
 
         boxes = torch.as_tensor(boxes, dtype=torch.float32)
         labels = torch.as_tensor(labels, dtype=torch.int64)
-
         area = (boxes[:, 2] - boxes[:, 0]) * (boxes[:, 3] - boxes[:, 1])
         area = torch.as_tensor(area, dtype=torch.float32)
         iscrowd = torch.zeros((len(boxes),), dtype=torch.int64)

@@ -14,15 +14,15 @@ def get_resnet50_model():
     import ssl
     ssl._create_default_https_context = ssl._create_unverified_context
 
-    model = fasterrcnn_resnet50_fpn(weights='FasterRCNN_ResNet50_FPN_Weights.DEFAULT')
+    resnet = fasterrcnn_resnet50_fpn(weights='FasterRCNN_ResNet50_FPN_Weights.DEFAULT')
 
     num_classes = 4
-    in_features = model.roi_heads.box_predictor.cls_score.in_features
-    model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
+    in_features = resnet.roi_heads.box_predictor.cls_score.in_features
+    resnet.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
 
-    model = model.to(DEVICE)
+    resnet.eval().to(DEVICE)
 
-    return model
+    return resnet
 
 def load_resnet50_model_state(path):
     model = get_resnet50_model()
@@ -61,9 +61,7 @@ def get_dataloader(train_batch_size=1, test_batch_size=1, take_one=False):
         mask_dataset,
         batch_size=train_batch_size,
         shuffle=True,
-        num_workers=1,
-        drop_last=True,
-        persistent_workers=True,
+        num_workers=4,
         collate_fn=_collate_fn,
     )
 
@@ -71,9 +69,7 @@ def get_dataloader(train_batch_size=1, test_batch_size=1, take_one=False):
         mask_dataset_test,
         batch_size=test_batch_size,
         shuffle=True,
-        num_workers=1,
-        drop_last=True,
-        persistent_workers=True,
+        num_workers=4,
         collate_fn=_collate_fn,
     )
 

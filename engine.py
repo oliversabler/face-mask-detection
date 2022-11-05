@@ -51,6 +51,7 @@ def _train_epoch(model, optimizer, dataloader, epoch):
         targets = [{k: v.to(DEVICE) for k, v in t.items()} for t in targets]
 
         loss_dict = model(images, targets) # ~1s op
+
         losses = sum(loss for loss in loss_dict.values())
         loss_value = losses.item()
 
