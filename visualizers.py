@@ -15,9 +15,9 @@ def _visualize_image(imgs_path, xmls_path, img_name):
 
 def visualize_random_image(filenames, imgs_path, xmls_path):
     img_name = filenames[random.randint(0, len(filenames))]
-    _visualize_image(img_name, imgs_path, xmls_path)
+    _visualize_image(imgs_path, xmls_path, img_name)
 
 
 def visualize_image_by_index(filenames, imgs_path, xmls_path, index=0):
     img_name = filenames[index]
-    _visualize_image(img_name, imgs_path, xmls_path)
+    _visualize_image(imgs_path, xmls_path, img_name)

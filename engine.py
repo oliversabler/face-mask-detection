@@ -29,7 +29,6 @@ def _train_epoch(model, optimizer, dataloader, epoch):
     """
     Trains the epoch
     """
-    model.train()
 
     lr_scheduler = None
     if epoch == 0:
@@ -44,13 +43,14 @@ def _train_epoch(model, optimizer, dataloader, epoch):
     time_delta = []
 
     i = 0
-    print(dataloader)
+
+    model.train()
+
     for images, targets in dataloader:
-        print(images, targets)
         time_start = perf_counter()
 
         images = list(i for i in images)
-        targets = [{k: v for k, v in t.items()} for t in targets]
+        targets = [dict(t.items()) for t in targets]
 
         loss_dict = model(images, targets) # ~1s op
 

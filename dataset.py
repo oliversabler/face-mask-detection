@@ -1,7 +1,7 @@
 """
 Handles the dataset
 """
-from os import path
+import os
 from PIL import Image
 
 import torch
@@ -18,7 +18,6 @@ class MaskDataset(Dataset):
     - iscrowd: Instances with iscrowd=True will be ignored during evaluation.
     """
     def __init__(self, filenames, imgs_path, xmls_path, transforms):
-        print(imgs_path, xmls_path)
         self.filenames = filenames
         self.imgs_path = imgs_path
         self.xmls_path = xmls_path
@@ -26,7 +25,7 @@ class MaskDataset(Dataset):
 
     def __getitem__(self, index):
         img_name = self.filenames[index]
-        img_path = path.join(self.imgs_path, img_name)
+        img_path = os.path.join(self.imgs_path, img_name)
         img = Image.open(img_path).convert('RGB')
         width, height = img.size
         boxes, labels = get_annotation(img_name, self.xmls_path, width, height)

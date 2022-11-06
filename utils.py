@@ -1,5 +1,8 @@
+"""
+Utility functions
+"""
+import os
 import xmltodict
-from os import path
 from PIL import ImageDraw
 
 from matplotlib import pyplot as plt
@@ -15,15 +18,14 @@ def get_annotation(filename, xmls_path, width=0, height=0, width_resized=1, heig
     """
     bboxes = []
     labels = []
+    xml_path = os.path.join(xmls_path, filename[:-3] + 'xml')
 
-    xml_path = path.join(xmls_path, filename[:-3] + 'xml')
-
-    with open(xml_path) as file:
+    with open(xml_path, encoding='utf-8') as file:
         xml = xmltodict.parse(file.read())
         root = xml['annotation']
 
         obj = root['object']
-        if type(obj) != list:
+        if not isinstance(obj, list):
             obj = [obj]
 
         for obj in obj:
@@ -46,6 +48,9 @@ def get_annotation(filename, xmls_path, width=0, height=0, width_resized=1, heig
         return bboxes, labels
 
 def mark_faces(img, bboxes, labels):
+    """
+    Marks faces by drawing a box around the face
+    """
     for bbox, label in zip(bboxes, labels):
         xmin, ymin, xmax, ymax = bbox
         shape = [
@@ -73,3 +78,4 @@ def plot_image(img, img_name, bboxes, labels):
 
     plt.axis('off')
     plt.imshow(img)
+    plt.show()
