@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader, Subset
 from torchvision.models.detection import fasterrcnn_resnet50_fpn
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 
-def get_resnet50_model():
+def get_resnet50_model(device):
     """
     Get the Faster RCNN ResNet 50 model
     """
@@ -24,17 +24,19 @@ def get_resnet50_model():
     in_features = resnet.roi_heads.box_predictor.cls_score.in_features
     resnet.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
 
+    resnet.to(device)
+
     # Evaluate the model
     resnet.eval()
 
     return resnet
 
-def load_resnet50_model_state(path):
+def load_resnet50_model_state(path, device):
     """
     Load the model for prediction
     """
     model = get_resnet50_model()
-    model.load_state_dict(torch.load(path))
+    model.load_state_dict(torch.load(path, map_location=torch.device(device)))
     return model
 
 def get_sgd_optimizer(model):
@@ -69,7 +71,7 @@ def get_dataloader(dataset, batch_size=1, take_one=False):
         batch_size=batch_size,
         shuffle=True,
         num_workers=4,
-        collate_fn=_collate_fn,
+        collate_fn=_collate_fn
     )
 
     return dataloader

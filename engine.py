@@ -13,6 +13,8 @@ from dataset import MaskDataset
 from model import get_resnet50_model, get_sgd_optimizer, get_dataloader
 from logger import EpochLogger
 
+DEVICE = "mps" if torch.has_mps else "cpu"
+
 def _warmup_lr_scheduler(optimizer, warmup_iters, warmup_factor):
     """
     Warmup learning rate scheduler
@@ -49,8 +51,8 @@ def _train_epoch(model, optimizer, dataloader, epoch):
     for images, targets in dataloader:
         time_start = perf_counter()
 
-        images = list(i for i in images)
-        targets = [dict(t.items()) for t in targets]
+        images = list(i.to(DEVICE) for i in images)
+        targets = [{k: v.to(DEVICE) for k, v in t.items()} for t in targets]
 
         loss_dict = model(images, targets) # ~1s op
 
@@ -94,8 +96,8 @@ def _evaluate_epoch(model, dataloader, epoch):
         for images, targets in dataloader:
             time_start = perf_counter()
 
-            images = list(image for image in images)
-            targets = [{k: v for k, v in t.items()} for t in targets]
+            images = list(i.to(DEVICE) for i in images)
+            targets = [{k: v.to(DEVICE) for k, v in t.items()} for t in targets]
 
             predictions = model(images)
 
@@ -115,10 +117,11 @@ def train(filenames, imgs_path, xmls_path):
     """
     Run training
     """
-    print('[Training]')
+    print(f'[Training] on device: {DEVICE}')
+    import platform; print(platform.platform())
 
     # Fetch model
-    model = get_resnet50_model()
+    model = get_resnet50_model(DEVICE)
 
     # Fetch optimizer
     optimizer = get_sgd_optimizer(model)
@@ -126,15 +129,16 @@ def train(filenames, imgs_path, xmls_path):
     # Create datasets
     dataset = MaskDataset(filenames, imgs_path, xmls_path, _get_transform(is_training=True))
     dataset_eval = MaskDataset(filenames, imgs_path, xmls_path, _get_transform())
-    
+
     take_one = True
+    batch_size = 10
 
     dataloader = get_dataloader(
-        dataset, batch_size=1, take_one=take_one
+        dataset, batch_size=batch_size, take_one=take_one
     )
 
     dataloader_eval = get_dataloader(
-        dataset_eval, batch_size=1, take_one=take_one
+        dataset_eval, batch_size=batch_size, take_one=take_one
     )
 
     # Set number of epochs to run
